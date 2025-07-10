@@ -1,0 +1,59 @@
+Admin Routers:
+    auth
+register *
+login *
+logout *
+
+register teacher
+register student
+
+show student
+show teacher
+
+
+
+
+student-management-app/
+│
+├── controllers/
+│   ├── auth/
+│   │   ├── adminAuthController.js        # Admin login, logout
+│   │   ├── teacherAuthController.js      # Teacher login, logout
+│   │   └── studentAuthController.js      # Student login, logout (if students log in)
+│   │
+│   ├── admin/
+│   │   └── adminController.js            # Admin-only features (e.g., registerTeacher)
+│   │
+│   ├── teacher/
+│   │   └── teacherController.js          # Teacher-specific actions (if any)
+│   │
+│   ├── student/
+│   │   └── studentController.js          # Student-specific actions (if any)
+│   │
+│   └── shared/
+│       └── userController.js             # Shared: getAllStudents, getAllTeachers, etc.
+│
+├── middleware/
+│   ├── authMiddleware.js                 # JWT/session auth middleware
+│   └── roleMiddleware.js                 # Role-based access control
+│
+├── models/
+│   ├── Admin.js
+│   ├── Teacher.js
+│   └── Student.js
+│
+├── routes/
+│   ├── adminRoutes.js                    # Admin-specific routes
+│   ├── teacherRoutes.js                  # Teacher-specific routes
+│   ├── studentRoutes.js                  # Student-specific routes
+│   └── authRoutes.js                     # Shared or separate login routes
+│
+├── utils/
+│   └── token.js                          # JWT generation, helpers
+│
+├── config/
+│   └── db.js                             # DB connection config
+│
+├── .env                                  # Environment variables
+├── app.js                                # Express setup
+└── package.json
