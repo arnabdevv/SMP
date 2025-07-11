@@ -10,6 +10,16 @@ const studentSchema = mongoose.Schema({
     required: true,
     unique: true,
   },
+  phoneNumber: {
+    type: String,
+    require: true,
+    unique: true,
+  },
+  parentPhoneNumber: {
+    type: String,
+    require: true,
+    unique: true,
+  },
   password: {
     type: String,
     required: true,
@@ -18,27 +28,15 @@ const studentSchema = mongoose.Schema({
     type: String,
     default: "Student",
   },
-  class: {
-    name: {
-      type: String,
-      require: true,
-    },
-    id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Class",
-      required: true,
-    },
+  classRef: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Class",
+    required: true,
   },
-  batch: {
-    name: {
-      type: String,
-      require: true,
-    },
-    id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Batch",
-      required: true,
-    },
+  batchRef: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Batch",
+    required: true,
   },
   profileImage: {
     type: String,

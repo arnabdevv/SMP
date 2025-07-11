@@ -1,4 +1,5 @@
 // middleware/roleMiddleware.js
+const debug = require("debug")("development:app");
 
 /**
  * Role-based access control middleware.
@@ -16,13 +17,12 @@ exports.authorizeRole = (...allowedRoles) => {
 
     const userRole = req.user.role;
 
+    debug(`req.user: ${req.user.role} | ${allowedRoles}`);
     // Check if user role is in the list of allowed roles
     if (!allowedRoles.includes(userRole)) {
-      return res
-        .status(403)
-        .json({
-          message: "Forbidden: You do not have access to this resource",
-        });
+      return res.status(403).json({
+        message: "Forbidden: You do not have access to this resource",
+      });
     }
 
     next(); // User has permission
