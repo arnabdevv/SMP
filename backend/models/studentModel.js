@@ -18,15 +18,27 @@ const studentSchema = mongoose.Schema({
     type: String,
     default: "Student",
   },
-  classRef: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Class",
-    required: true,
+  class: {
+    name: {
+      type: String,
+      require: true,
+    },
+    id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Class",
+      required: true,
+    },
   },
-  batchRef: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Batch",
-    required: true,
+  batch: {
+    name: {
+      type: String,
+      require: true,
+    },
+    id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Batch",
+      required: true,
+    },
   },
   profileImage: {
     type: String,

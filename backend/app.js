@@ -11,6 +11,8 @@ require("dotenv").config();
 const adminRouter = require("./router/adminRouter");
 const teacherRouter = require("./router/teacherRouter");
 const studentRouter = require("./router/studentRouter");
+const classRouter = require("./router/classRouter");
+const batchRouter = require("./router/batchRouter");
 
 const app = express();
 
@@ -21,6 +23,8 @@ app.use(cookieParser());
 app.use("/admin", adminRouter);
 app.use("/teacher", teacherRouter);
 app.use("/student", studentRouter);
+app.use("/class", classRouter);
+app.use("/batch", batchRouter);
 
 app.listen(3000, () => {
   debug("Backend Running...");
