@@ -6,6 +6,7 @@ const {
   logoutTeacher,
 } = require("../controllers/auth/teacherAuthController");
 const { isAuthenticated } = require("../middleware/authMiddleware");
+const { dashboard } = require("../controllers/common/commonController");
 const router = express.Router();
 
 // GET   /api/teacher/             - Test route ("Hey Teacher")
@@ -23,8 +24,6 @@ router.post("/login", loginTeacher);
 router.get("/logout", logoutTeacher);
 
 // GET   /api/teacher/dashboard    - Teacher dashboard (auth required)
-router.get("/dashboard", isAuthenticated, (req, res) => {
-  res.send(`${req.user.role}'s Dashboard Router`);
-});
+router.get("/dashboard", isAuthenticated, dashboard);
 
 module.exports = router;

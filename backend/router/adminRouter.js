@@ -8,6 +8,7 @@ const {
   logoutAdmin,
 } = require("../controllers/auth/adminAuthController");
 const { isAuthenticated } = require("../middleware/authMiddleware");
+const { dashboard } = require("../controllers/common/commonController");
 
 // GET   /api/admin/             - Test route ("Hey Admin")
 router.get("/", (req, res) => {
@@ -24,8 +25,6 @@ router.post("/login", loginAdmin);
 router.get("/logout", logoutAdmin);
 
 // GET   /api/admin/dashboard    - Admin dashboard (auth required)
-router.get("/dashboard", isAuthenticated, (req, res) => {
-  res.send(`${req.user.role}'s Dashboard Router`);
-});
+router.get("/dashboard", isAuthenticated, dashboard);
 
 module.exports = router;

@@ -1,8 +1,10 @@
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const debug = require("debug")("development:app");
 
 const studentModel = require("../../models/studentModel");
 const batchModel = require("../../models/batchModel");
+const generateToken = require("../../utils/generateToken");
 
 //Register Student
 const registerStudent = async (req, res) => {
@@ -46,11 +48,42 @@ const registerStudent = async (req, res) => {
       batchRef: batchId,
     });
 
+    const token = generateToken(newStd);
+    res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+
     const batch = await batchModel.findOne({ _id: batchId });
     batch.students.push(newStd._id);
     await batch.save();
 
     res.status(200).json({ newStd });
+  } catch (err) {
+    res.status(500).json({ message: "Internal Server Problem" });
+    debug(err);
+  }
+};
+
+//Login Student
+const loginStudent = async (req, res) => {
+  let { email, password } = req.body;
+  try {
+    if (!email || !password) {
+      return res.status(400).json({ message: "All fields are require" });
+    }
+
+    const student = await studentModel.findOne({ email });
+
+    if (!student) {
+      return res.status(400).json({ message: "Email or Password Incorrect" });
+    }
+
+    const result = await bcrypt.compare(password, student.password);
+    if (result) {
+      const token = generateToken(student);
+      res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+      res.status(200).json({ message: "Login Successful" });
+    } else {
+      res.status(400).json({ message: "Email or Password Incorrect" });
+    }
   } catch (err) {
     res.status(500).json({ message: "Internal Server Problem" });
     debug(err);
@@ -83,15 +116,20 @@ const registerStudentInBulk = async (req, res) => {
         .json({ message: "Some entries are invalid", invalid });
     }
 
-    const studentsData = students.map((s) => ({
-      fullName: s.fullName,
-      email: s.email,
-      phoneNumber: s.phoneNumber,
-      parentPhoneNumber: s.parentPhoneNumber,
-      password: s.password,
-      classRef: s.classId,
-      batchRef: s.batchId,
-    }));
+    const studentsData = await Promise.all(
+      students.map(async (s) => {
+        const hashedPassword = await bcrypt.hash(s.password, 10);
+        return {
+          fullName: s.fullName,
+          email: s.email,
+          phoneNumber: s.phoneNumber,
+          parentPhoneNumber: s.parentPhoneNumber,
+          password: hashedPassword,
+          classRef: s.classId,
+          batchRef: s.batchId,
+        };
+      })
+    );
 
     const bulkRegistration = await studentModel.insertMany(studentsData);
 
@@ -110,4 +148,15 @@ const registerStudentInBulk = async (req, res) => {
   }
 };
 
-module.exports = { registerStudent, registerStudentInBulk };
+//logout Student
+const logoutStudent = (req, res) => {
+  res.clearCookie("token", { httpOnly: true, sameSite: "strict" });
+  return res.status(200).json({ message: "Logout Successfully" });
+};
+
+module.exports = {
+  registerStudent,
+  loginStudent,
+  registerStudentInBulk,
+  logoutStudent,
+};

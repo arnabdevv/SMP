@@ -24,10 +24,7 @@ const studentSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  role: {
-    type: String,
-    default: "Student",
-  },
+
   classRef: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Class",
@@ -62,6 +59,10 @@ const studentSchema = mongoose.Schema({
       outOf: { type: Number }, // e.g., 20
     },
   ],
+  role: {
+    type: String,
+    default: "student",
+  },
 });
 
 module.exports = mongoose.model("Student", studentSchema);

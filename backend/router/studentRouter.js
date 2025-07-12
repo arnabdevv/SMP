@@ -4,9 +4,12 @@ const {
   registerStudent,
   regis,
   registerStudentInBulk,
+  loginStudent,
+  logoutStudent,
 } = require("../controllers/auth/studentAuthController");
 const { isAuthenticated } = require("../middleware/authMiddleware");
 const { authorizeRole } = require("../middleware/roleMiddleware");
+const { dashboard } = require("../controllers/common/commonController");
 const router = express.Router();
 
 // GET   /api/student/                  - Test route ("Hey Student")
@@ -22,6 +25,9 @@ router.post(
   registerStudent
 );
 
+// POST  /api/student/login          - Login a student
+router.post("/login", loginStudent);
+
 // POST  /api/student/bulkRegistration  - Register students in bulk (admin/teacher only)
 router.post(
   "/bulkRegistration",
@@ -29,4 +35,9 @@ router.post(
   authorizeRole("admin", "teacher"),
   registerStudentInBulk
 );
+
+// POST  /api/student/logout          - Logout a student
+router.get("/logout", logoutStudent);
+
+router.get("/dashboard", isAuthenticated, dashboard);
 module.exports = router;
