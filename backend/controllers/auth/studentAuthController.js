@@ -50,9 +50,9 @@ const registerStudent = async (req, res) => {
     batch.students.push(newStd._id);
     await batch.save();
 
-    res.send(newStd);
+    res.status(200).json({ newStd });
   } catch (err) {
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Internal Server Problem" });
     debug(err);
   }
 };

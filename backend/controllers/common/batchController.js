@@ -1,3 +1,5 @@
+const debug = require("debug")("development:app");
+
 const batchModel = require("../../models/batchModel");
 const classModel = require("../../models/classModel");
 
@@ -24,9 +26,10 @@ const createBatch = async (req, res) => {
     classData.batches.push(newBatch._id);
     await classData.save();
 
-    res.send(newBatch);
+    res.status(200).json({ newBatch });
   } catch (err) {
-    res.send(err);
+    res.status(200).json({ message: "Internal Server Error" });
+    debug(err);
   }
 };
 

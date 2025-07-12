@@ -1,3 +1,5 @@
+const debug = require("debug")("development:app");
+
 const classModel = require("../../models/classModel");
 
 //Create class
@@ -14,7 +16,7 @@ const createClass = async (req, res) => {
     const newClass = await classModel.create({
       name: className,
     });
-    res.send(newClass);
+    res.status(200).json({ newClass });
   } catch (err) {
     res
       .status(500)
