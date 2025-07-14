@@ -1,26 +1,26 @@
-import React from 'react';
+import React from "react";
 
 const StatsCard = ({
   title,
   value,
   change,
-  changeType = 'neutral',
+  changeType = "neutral",
   icon: Icon,
-  color = 'blue'
+  color = "blue",
 }) => {
   const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    yellow: 'bg-yellow-50 text-yellow-600',
-    red: 'bg-red-50 text-red-600',
-    purple: 'bg-purple-50 text-purple-600',
-    teal: 'bg-teal-50 text-teal-600'
+    blue: "bg-blue-50 text-blue-600",
+    green: "bg-green-50 text-green-600",
+    yellow: "bg-yellow-50 text-yellow-600",
+    red: "bg-red-50 text-red-600",
+    purple: "bg-purple-50 text-purple-600",
+    teal: "bg-teal-50 text-teal-600",
   };
 
   const changeClasses = {
-    increase: 'text-green-600',
-    decrease: 'text-red-600',
-    neutral: 'text-gray-600'
+    increase: "text-green-600",
+    decrease: "text-red-600",
+    neutral: "text-gray-600",
   };
 
   return (

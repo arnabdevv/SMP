@@ -1,179 +1,168 @@
-# SMP Project
+# SMP Frontend
 
 ## Overview
 
-The SMP project is a web application built using React, Vite, and Tailwind CSS. It is designed to manage various aspects of a school, including exams, students, teachers, and administrative tasks. The project is structured to ensure modularity and scalability.
+This is the frontend for the School Management Platform (SMP). It is a React + Vite + Tailwind CSS application for managing school operations, including students, teachers, classes, exams, fees, and more. The codebase is modular, scalable, and uses React Context for state management.
 
-## File Structure
+---
 
-### Root Directory
+## Tech Stack
 
-- **eslint.config.js**: Configuration for ESLint, ensuring code quality.
-- **index.html**: Entry point for the application.
-- **package.json**: Contains project dependencies and scripts.
-- **postcss.config.js**: Configuration for PostCSS, used with Tailwind CSS.
-- **tailwind.config.js**: Configuration for Tailwind CSS.
-- **vite.config.js**: Configuration for Vite, the build tool.
+- **Framework:** React (JSX)
+- **Build Tool:** Vite
+- **Styling:** Tailwind CSS
+- **Routing:** React Router DOM (if present)
+- **State Management:** React Context API
+- **Icons:** lucide-react
+- **Linting:** ESLint
 
-### `src` Directory
+---
 
-Contains the main source code for the application.
+## Project Structure
 
-#### `App.jsx`
+```
+frontend/
+├── src/
+│   ├── components/
+│   │   ├── Admin/         # Admin dashboard & management
+│   │   ├── Auth/          # Login/authentication
+│   │   ├── Common/        # Shared UI (DataTable, Modal, StatsCard)
+│   │   ├── Layout/        # Header, Sidebar, Layout wrappers
+│   │   ├── Student/       # Student dashboard
+│   │   └── Teacher/       # Teacher dashboard & features
+│   ├── contexts/          # Global state (Auth, Data, Language)
+│   ├── App.jsx            # Main app, routing
+│   ├── main.jsx           # Entry point
+│   └── index.css          # Tailwind/global styles
+├── types/                 # JS type definitions
+├── index.html             # HTML template
+├── package.json           # Dependencies & scripts
+├── tailwind.config.js     # Tailwind config
+├── postcss.config.js      # PostCSS config
+└── eslint.config.js       # ESLint config
+```
 
-The main application component.
+---
 
-#### `index.css`
+## Routing: Pages, Components, and Contexts
 
-Global CSS styles.
+| Route                 | Page/Component                 | Description                                 | Contexts Used                    |
+| --------------------- | ------------------------------ | ------------------------------------------- | -------------------------------- |
+| `/login`              | `Auth/Login.jsx`               | Login page for all users                    | `AuthContext`                    |
+| `/admin/dashboard`    | `Admin/AdminDashboard.jsx`     | Admin dashboard (stats, quick actions, etc) | `DataContext`, `LanguageContext` |
+| `/admin/classes`      | `Admin/ClassManagement.jsx`    | Manage classes                              | `DataContext`                    |
+| `/admin/fees`         | `Admin/FeeRecords.jsx`         | Manage/view fee records                     | `DataContext`                    |
+| `/admin/students`     | `Admin/StudentManagement.jsx`  | Manage students                             | `DataContext`                    |
+| `/admin/teachers`     | `Admin/TeacherManagement.jsx`  | Manage teachers                             | `DataContext`                    |
+| `/student/dashboard`  | `Student/StudentDashboard.jsx` | Student dashboard                           | `DataContext`                    |
+| `/teacher/dashboard`  | `Teacher/TeacherDashboard.jsx` | Teacher dashboard                           | `DataContext`                    |
+| `/teacher/exams`      | `Teacher/ExamManagement.jsx`   | Manage/view exams                           | `DataContext`                    |
+| `/teacher/attendance` | `Teacher/Attendance.jsx`       | Mark/view attendance                        | `DataContext`                    |
+| `/teacher/students`   | `Teacher/StudentList.jsx`      | List of students for teacher                | `DataContext`                    |
 
-#### `main.jsx`
+**Layout Components:**
 
-Entry point for the React application.
+- `Layout/Layout.jsx` or `Layout/Layout.tsx`: Main layout wrapper for all pages (header/sidebar)
+- `Layout/Header.jsx`: Top navigation bar
+- `Layout/Sidebar.jsx`: Sidebar navigation
 
-#### `components` Directory
+**Common Components:**
 
-Contains reusable components organized by functionality.
+- `Common/DataTable.jsx`: Used in management/listing pages (students, teachers, fees, etc.)
+- `Common/Modal.jsx`: Used for popups/forms
+- `Common/StatsCard.jsx`: Used in dashboards for stats
 
-##### `Admin`
+**Contexts:**
 
-- **AdminDashboard.jsx**: Dashboard for administrative tasks.
-- **ClassManagement.jsx**: Manage classes.
-- **FeeRecords.jsx**: Manage fee records.
-- **StudentManagement.jsx**: Manage student information.
-- **TeacherManagement.jsx**: Manage teacher information.
+- `AuthContext.jsx`: Handles authentication state, user info, login/logout
+- `DataContext.jsx`: Provides all app data (students, teachers, classes, fees, exams, etc.)
+- `LanguageContext.jsx`: Handles language/i18n (translations)
 
-##### `Auth`
+---
 
-- **Login.jsx/**: Login page for authentication.
+## How Contexts Are Used
 
-##### `Common`
+- **AuthContext**: Used in `Login.jsx`, and in layout/components to check user role, protect routes, and handle logout.
+- **DataContext**: Used in all dashboard and management pages to fetch and provide data (students, teachers, classes, fees, exams, etc.).
+- **LanguageContext**: Used in all components for translations (e.g., `t('dashboard.welcome')`).
 
-- **DataTable.jsx**: Reusable table component.
-- **Modal.jsx**: Reusable modal component.
-- **StatsCard.jsx**: Card component for displaying statistics.
+---
 
-##### `Layout`
+## Key Features
 
-- **Header.jsx**: Header component.
-- **Layout.jsx/tsx**: Main layout component.
-- **Sidebar.jsx**: Sidebar navigation.
+- **Role-based Dashboards:** Admin, Teacher, and Student each have their own dashboard and management pages.
+- **Authentication:** Login system with context-based state.
+- **Data Management:** CRUD for students, teachers, classes, fees, and exams.
+- **Reusable UI:** DataTable, Modal, StatsCard, etc.
+- **Responsive Design:** Tailwind CSS for mobile-friendly layouts.
+- **i18n Support:** LanguageContext for translations.
 
-##### `Student`
+---
 
-- **StudentDashboard.jsx**: Dashboard for students.
-
-##### `Teacher`
-
-- **Attendance.jsx**: Manage attendance.
-- **ExamManagement.jsx**: Manage exams.
-- **StudentList.jsx**: List of students.
-- **TeacherDashboard.jsx**: Dashboard for teachers.
-
-#### `contexts` Directory
-
-Contains React context files for managing global state.
-
-- **AuthContext.jsx**: Context for authentication.
-- **DataContext.jsx**: Context for managing data.
-- **LanguageContext.jsx**: Context for managing language settings.
-
-#### `types` Directory
-
-Contains type definitions.
-
-- **index.js**: Type definitions for the project.
-
-## Scripts
-
-The following scripts are available in `package.json`:
-
-- `dev`: Starts the development server.
-- `build`: Builds the application for production.
-- `lint`: Runs ESLint.
-- `preview`: Previews the production build.
-
-## Configuration Files
-
-- **Vite**: Configured in `vite.config.js`.
-- **Tailwind CSS**: Configured in `tailwind.config.js`.
-- **PostCSS**: Configured in `postcss.config.js`.
-- **ESLint**: Configured in `eslint.config.js`.
-
-## Dependencies
-
-### Production
-
-- `lucide-react`: Icon library.
-- `react`: JavaScript library for building user interfaces.
-- `react-dom`: React DOM renderer.
-- `react-router-dom`: Library for routing.
-
-### Development
-
-- `@eslint/js`: ESLint configuration.
-- `@types/react`: TypeScript definitions for React.
-- `@types/react-dom`: TypeScript definitions for React DOM.
-- `@vitejs/plugin-react`: React plugin for Vite.
-- `autoprefixer`: PostCSS plugin for adding vendor prefixes.
-- `eslint`: Linter for JavaScript.
-- `eslint-plugin-react-hooks`: ESLint rules for React hooks.
-- `eslint-plugin-react-refresh`: ESLint rules for React Refresh.
-- `globals`: Global variables for ESLint.
-- `postcss`: CSS processing tool.
-- `tailwindcss`: Utility-first CSS framework.
-- `vite`: Build tool.
-
-## How to Run
+## Getting Started
 
 1. Install dependencies:
-   ```bash
+   ```sh
    npm install
    ```
 2. Start the development server:
-   ```bash
+   ```sh
    npm run dev
    ```
+   The app will be available at http://localhost:5173
 3. Build for production:
-   ```bash
+   ```sh
    npm run build
    ```
 4. Preview the production build:
-   ```bash
+   ```sh
    npm run preview
    ```
+5. Lint the code:
+   ```sh
+   npm run lint
+   ```
 
-## Routes and Components
+---
 
-### Admin
+## Customization & Extension
 
-- **AdminDashboard**: `/admin/dashboard`
-- **ClassManagement**: `/admin/classes`
-- **FeeRecords**: `/admin/fees`
-- **StudentManagement**: `/admin/students`
-- **TeacherManagement**: `/admin/teachers`
+- **Add new pages/components:** Place them in the appropriate folder under `src/components/` and add a route in `App.jsx`.
+- **Add new context/global state:** Create a new file in `src/contexts/` and provide it in `main.jsx`.
+- **Change dashboard stats:** Edit `AdminDashboard.jsx` and update logic in `DataContext.jsx`.
+- **Change language/i18n:** Update `LanguageContext.jsx` and translation files (if any).
+- **Update styles:** Edit `index.css` or Tailwind config.
 
-### Auth
+---
 
-- **Login**: `/login`
+## Useful Scripts
 
-### Student
+- `npm run dev` — Start development server
+- `npm run build` — Build for production
+- `npm run preview` — Preview production build
+- `npm run lint` — Run ESLint
 
-- **StudentDashboard**: `/student/dashboard`
-
-### Teacher
-
-- **TeacherDashboard**: `/teacher/dashboard`
-- **ExamManagement**: `/teacher/exams`
-- **Attendance**: `/teacher/attendance`
-- **StudentList**: `/teacher/students`
-
-## Contexts
-
-- **AuthContext**: Manages authentication state.
-- **DataContext**: Manages application data.
-- **LanguageContext**: Manages language settings.
+---
 
 ## Notes
 
-This project uses modular components and contexts to ensure scalability and maintainability. Tailwind CSS is used for styling, and Vite is used for fast builds and development.
+- The frontend expects a backend API (see `backend/` folder) for data. Update API endpoints in context or data files as needed.
+- For authentication and protected routes, see `AuthContext.jsx` (frontend) and `roleMiddleware.js` (backend).
+- If you add new dependencies, update `package.json` and re-run `npm install`.
+
+---
+
+## FAQ / Questions
+
+- **Where do I add a new page?**  
+  Add a new component in `src/components/`, then add a route in `App.jsx`.
+- **How do I access user info or authentication state?**  
+  Use `AuthContext` via `useContext(AuthContext)` or the custom hook if provided.
+- **How do I fetch or update data?**  
+  Use `DataContext` and its provided methods/state.
+- **How do I add a new language or translation?**  
+  Update `LanguageContext.jsx` and translation files.
+- **How do I change the layout?**  
+  Edit `Layout/Layout.jsx`, `Header.jsx`, or `Sidebar.jsx`.
+
+For more, explore the `src/components/` and `src/contexts/` folders. The code is modular and follows React best practices for maintainability.
