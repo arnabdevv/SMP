@@ -24,4 +24,16 @@ const createClass = async (req, res) => {
   }
 };
 
-module.exports = { createClass };
+// Fetch all classes
+const fetchClasses = async (req, res) => {
+  try {
+    const classes = await classModel.find({}).populate("batches");
+    res.json({ classes });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error fetching classes", error: err.message });
+  }
+};
+
+module.exports = { createClass, fetchClasses };

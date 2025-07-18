@@ -1,61 +1,13 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import {
+  fetchClasses,
+  createClass as apiCreateClass,
+  createBatch as apiCreateBatch,
+} from "../api/classBatch";
 
 const DataContext = createContext(undefined);
 
 // Mock data
-const mockClasses = [
-  {
-    id: "1",
-    name: "Class 10",
-    description: "Secondary level class",
-    batches: [],
-    createdAt: "2024-01-15T10:00:00Z",
-  },
-  {
-    id: "2",
-    name: "Class 11",
-    description: "Higher secondary level class",
-    batches: [],
-    createdAt: "2024-01-15T10:00:00Z",
-  },
-  {
-    id: "3",
-    name: "Class 12",
-    description: "Higher secondary final class",
-    batches: [],
-    createdAt: "2024-01-15T10:00:00Z",
-  },
-];
-
-const mockBatches = [
-  {
-    id: "1",
-    name: "Batch A",
-    classId: "1",
-    className: "Class 10",
-    studentCount: 25,
-    teacherIds: ["1", "2"],
-    createdAt: "2024-01-15T10:30:00Z",
-  },
-  {
-    id: "2",
-    name: "Batch B",
-    classId: "1",
-    className: "Class 10",
-    studentCount: 23,
-    teacherIds: ["1", "3"],
-    createdAt: "2024-01-15T10:30:00Z",
-  },
-  {
-    id: "3",
-    name: "Batch A",
-    classId: "2",
-    className: "Class 11",
-    studentCount: 28,
-    teacherIds: ["2", "3"],
-    createdAt: "2024-01-15T10:30:00Z",
-  },
-];
 
 const mockStudents = [
   {
@@ -301,8 +253,9 @@ const mockFees = [
 ];
 
 export const DataProvider = ({ children }) => {
-  const [classes, setClasses] = useState(mockClasses);
-  const [batches, setBatches] = useState(mockBatches);
+  const [classes, setClasses] = useState([]);
+  // Batches are now part of class objects (populated)
+  const [batches, setBatches] = useState([]); // keep for compatibility, but not used
   const [students, setStudents] = useState(mockStudents);
   const [teachers, setTeachers] = useState(mockTeachers);
   const [exams, setExams] = useState(mockExams);
@@ -310,23 +263,38 @@ export const DataProvider = ({ children }) => {
   const [attendance, setAttendance] = useState(mockAttendance);
   const [fees, setFees] = useState(mockFees);
 
-  const addClass = (classData) => {
-    const newClass = {
-      ...classData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
+  // Fetch classes and batches from backend
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const classRes = await fetchClasses();
+        setClasses(classRes.classes || classRes);
+      } catch {}
     };
-    setClasses((prev) => [...prev, newClass]);
+    fetchAll();
+  }, []);
+
+  const addClass = async (classData) => {
+    try {
+      const res = await apiCreateClass(classData.name);
+      setClasses((prev) => [...prev, res.newClass]);
+    } catch (e) {
+      // Optionally handle error
+    }
   };
 
-  const addBatch = (batchData) => {
-    const newBatch = {
-      ...batchData,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-    };
-    setBatches((prev) => [...prev, newBatch]);
+  const addBatch = async (batchData) => {
+    try {
+      await apiCreateBatch(batchData.name, batchData.classId);
+      // Refetch classes to get updated batches
+      const classRes = await fetchClasses();
+      setClasses(classRes.classes || classRes);
+    } catch (e) {
+      // Optionally handle error
+    }
   };
+
+  // Optionally, implement fetchBatchesByClass if needed
 
   const addStudent = (studentData) => {
     const newStudent = {
@@ -423,7 +391,12 @@ export const DataProvider = ({ children }) => {
   };
 
   const getBatchesByClass = (classId) => {
-    return batches.filter((batch) => batch.classId === classId);
+    const cls = classes.find((c) => c._id === classId || c.id === classId);
+    if (!cls) return [];
+    // Defensive: ensure batches is always an array
+    if (!Array.isArray(cls.batches)) return [];
+    // Filter out null/undefined batches (in case of DB population issues)
+    return cls.batches.filter(Boolean);
   };
 
   const getStudentsByClassAndBatch = (classId, batchId) => {

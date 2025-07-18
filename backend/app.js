@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const debug = require("debug")("development:app");
 // MongoDB connection
@@ -15,6 +16,18 @@ const classRouter = require("./router/classRouter");
 const batchRouter = require("./router/batchRouter");
 
 const app = express();
+
+// Use cors middleware - allows requests from http://localhost:5173
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+
+// Alternatively, to allow any origin (use with caution in production):
+// app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
