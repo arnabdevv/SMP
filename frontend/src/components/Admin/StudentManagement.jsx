@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { registerStudent, fetchStudents } from "../../api/student";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useData } from "../../contexts/DataContext";
 import DataTable from "../Common/DataTable";
@@ -7,15 +8,9 @@ import { Plus, Search, Filter, Edit, Trash2, Eye } from "lucide-react";
 
 const StudentManagement = () => {
   const { t } = useLanguage();
-  const {
-    students,
-    classes,
-    batches,
-    addStudent,
-    updateStudent,
-    deleteStudent,
-    getBatchesByClass,
-  } = useData();
+  const { classes, getBatchesByClass, fetchClasses } = useData();
+  const [students, setStudents] = useState([]);
+  const [viewLoading, setViewLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -24,91 +19,163 @@ const StudentManagement = () => {
   const [filterClass, setFilterClass] = useState("");
   const [filterBatch, setFilterBatch] = useState("");
   const [formData, setFormData] = useState({
-    name: "",
+    fullName: "",
     email: "",
-    phone: "",
+    phoneNumber: "",
+    parentPhoneNumber: "",
+    password: "",
     classId: "",
-    className: "",
     batchId: "",
-    batchName: "",
+    address: "",
     guardianName: "",
     guardianPhone: "",
-    address: "",
-    admissionDate: "",
-    profileImage: "",
-    feeStatus: "pending",
+    feeStatus: "paid",
   });
+  const [studentLoading, setStudentLoading] = useState(false);
+  const [studentError, setStudentError] = useState("");
+  const [studentSuccess, setStudentSuccess] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const selectedClass = classes.find((cls) => cls.id === formData.classId);
-    const selectedBatch = batches.find(
-      (batch) => batch.id === formData.batchId
-    );
-
-    const studentData = {
-      ...formData,
-      className: selectedClass?.name || "",
-      batchName: selectedBatch?.name || "",
-    };
-
-    if (selectedStudent) {
-      updateStudent(selectedStudent.id, studentData);
-      setShowEditModal(false);
-    } else {
-      addStudent(studentData);
-      setShowAddModal(false);
+  // Fetch classes on mount if needed
+  React.useEffect(() => {
+    if (!classes || classes.length === 0) {
+      if (typeof fetchClasses === "function") fetchClasses();
     }
+  }, [classes, fetchClasses]);
 
-    resetForm();
+  // Fetch all students on mount
+  React.useEffect(() => {
+    const fetchAll = async () => {
+      setViewLoading(true);
+      try {
+        const students = await fetchStudents();
+        setStudents(students);
+      } catch {
+        setStudents([]);
+      } finally {
+        setViewLoading(false);
+      }
+    };
+    fetchAll();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStudentError("");
+    setStudentSuccess("");
+    // Validate all required fields
+    const requiredFields = [
+      "fullName",
+      "email",
+      "phoneNumber",
+      "parentPhoneNumber",
+      "password",
+      "classId",
+      "batchId",
+    ];
+    for (const field of requiredFields) {
+      if (!formData[field] || String(formData[field]).trim() === "") {
+        setStudentError("All fields are required.");
+        return;
+      }
+    }
+    setStudentLoading(true);
+    try {
+      await registerStudent(formData);
+      setStudentSuccess("Student registered successfully!");
+      setShowAddModal(false);
+      resetForm();
+      // Refresh students list from backend
+      const students = await fetchStudents();
+      setStudents(students);
+    } catch (err) {
+      setStudentError(err?.response?.data?.message || "Registration failed");
+    } finally {
+      setStudentLoading(false);
+    }
   };
 
   const resetForm = () => {
     setFormData({
-      name: "",
+      fullName: "",
       email: "",
-      phone: "",
+      phoneNumber: "",
+      parentPhoneNumber: "",
+      password: "",
       classId: "",
-      className: "",
       batchId: "",
-      batchName: "",
+      address: "",
       guardianName: "",
       guardianPhone: "",
-      address: "",
-      admissionDate: "",
-      profileImage: "",
-      feeStatus: "pending",
+      feeStatus: "paid",
     });
     setSelectedStudent(null);
   };
 
+  // Edit modal is not implemented to update backend, so just fill form for now
   const handleEdit = (student) => {
     setSelectedStudent(student);
-    setFormData(student);
+    setFormData({
+      fullName: student.fullName || student.name || "",
+      email: student.email || "",
+      phoneNumber: student.phoneNumber || student.phone || "",
+      parentPhoneNumber:
+        student.parentPhoneNumber || student.guardianPhone || "",
+      password: "", // Do not prefill password
+      classId:
+        student.classRef?._id || student.classId || student.class_id || "",
+      batchId:
+        student.batchRef?._id || student.batchId || student.batch_id || "",
+      address: student.address || "",
+      guardianName: student.guardianName || "",
+      guardianPhone: student.parentPhoneNumber || student.guardianPhone || "",
+      feeStatus: student.feeStatus || "paid",
+    });
     setShowEditModal(true);
   };
 
   const handleView = (student) => {
-    setSelectedStudent(student);
+    setSelectedStudent({
+      ...student,
+      name: student.fullName || student.name || "",
+      className: student.classRef?.name || student.className || "",
+      batchName: student.batchRef?.name || student.batchName || "",
+      phone: student.phoneNumber || student.phone || "",
+      guardianName: student.guardianName || "",
+      guardianPhone: student.parentPhoneNumber || student.guardianPhone || "",
+      address: student.address || "",
+      feeStatus: student.feeStatus || "paid",
+      admissionDate: student.admissionDate,
+    });
     setShowViewModal(true);
   };
 
+  // Delete is not implemented for backend, so just show alert for now
   const handleDelete = (student) => {
-    if (window.confirm(t("message.confirmDelete"))) {
-      deleteStudent(student.id);
-    }
+    alert("Delete functionality is not implemented yet.");
   };
 
-  const filteredStudents = students.filter((student) => {
-    const matchesSearch =
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesClass = !filterClass || student.classId === filterClass;
-    const matchesBatch = !filterBatch || student.batchId === filterBatch;
-    return matchesSearch && matchesClass && matchesBatch;
-  });
+  // Only filter by search term on the loaded students
+  const filteredStudents = students
+    .map((student) => ({
+      ...student,
+      name: student.fullName || student.name || "",
+      className: student.classRef?.name || student.className || "",
+      batchName: student.batchRef?.name || student.batchName || "",
+      phone: student.phoneNumber || student.phone || "",
+      feeStatus: student.feeStatus || "paid",
+      admissionDate: student.admissionDate,
+    }))
+    .filter((student) => {
+      const matchesSearch =
+        (student.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (student.email || "").toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesSearch;
+    });
 
-  const availableBatches = filterClass ? getBatchesByClass(filterClass) : [];
+  // For Add Student modal, use formData.classId; for filter, use filterClass
+  const availableBatches = formData.classId
+    ? getBatchesByClass(formData.classId)
+    : [];
 
   const columns = [
     {
@@ -150,7 +217,7 @@ const StudentManagement = () => {
     {
       key: "admissionDate",
       label: t("form.admissionDate"),
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value) => (value ? new Date(value).toLocaleDateString() : ""),
     },
   ];
 
@@ -169,9 +236,9 @@ const StudentManagement = () => {
         </button>
       </div>
 
-      {/* Filters */}
+      {/* Filters & Show Button */}
       <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <input
@@ -191,11 +258,17 @@ const StudentManagement = () => {
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">{t("form.selectClass")}</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name}
+            {classes && classes.length > 0 ? (
+              classes.map((cls) => (
+                <option key={cls._id || cls.id} value={cls._id || cls.id}>
+                  {cls.name}
+                </option>
+              ))
+            ) : (
+              <option value="" disabled>
+                {t("common.noData") || "No classes available"}
               </option>
-            ))}
+            )}
           </select>
           <select
             value={filterBatch}
@@ -204,12 +277,37 @@ const StudentManagement = () => {
             disabled={!filterClass}
           >
             <option value="">{t("form.selectBatch")}</option>
-            {availableBatches.map((batch) => (
-              <option key={batch.id} value={batch.id}>
-                {batch.name}
-              </option>
-            ))}
+            {filterClass &&
+              getBatchesByClass(filterClass).map((batch) => (
+                <option
+                  key={batch._id || batch.id}
+                  value={batch._id || batch.id}
+                >
+                  {batch.name}
+                </option>
+              ))}
           </select>
+          <button
+            className={`bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md ${
+              !filterClass && !filterBatch
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+            }`}
+            onClick={async () => {
+              setViewLoading(true);
+              try {
+                const students = await fetchStudents(filterClass, filterBatch);
+                setStudents(students);
+              } catch (err) {
+                setStudents([]);
+              } finally {
+                setViewLoading(false);
+              }
+            }}
+            disabled={!filterClass && !filterBatch}
+          >
+            {t("common.show")}
+          </button>
           <div className="flex items-center text-sm text-gray-600">
             <Filter className="h-4 w-4 mr-2" />
             {filteredStudents.length} {t("common.students")}
@@ -220,7 +318,7 @@ const StudentManagement = () => {
       {/* Students Table */}
       <DataTable
         columns={columns}
-        data={filteredStudents}
+        data={viewLoading ? [] : filteredStudents}
         onEdit={handleEdit}
         onDelete={handleDelete}
         onView={handleView}
@@ -239,21 +337,21 @@ const StudentManagement = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("form.studentName")}
+                Full Name
               </label>
               <input
                 type="text"
                 required
-                value={formData.name}
+                value={formData.fullName}
                 onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
+                  setFormData({ ...formData, fullName: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("common.email")}
+                Email
               </label>
               <input
                 type="email"
@@ -267,37 +365,68 @@ const StudentManagement = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("common.phone")}
+                Phone Number
               </label>
               <input
-                type="tel"
+                type="text"
                 required
-                value={formData.phone}
+                value={formData.phoneNumber}
                 onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
+                  setFormData({ ...formData, phoneNumber: e.target.value })
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("form.selectClass")}
+                Parent Phone Number
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.parentPhoneNumber}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    parentPhoneNumber: e.target.value,
+                  })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                required
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Class
               </label>
               <select
                 required
                 value={formData.classId}
-                onChange={(e) => {
+                onChange={(e) =>
                   setFormData({
                     ...formData,
                     classId: e.target.value,
                     batchId: "",
-                  });
-                }}
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">{t("form.selectClass")}</option>
+                <option value="">Select Class</option>
                 {classes.map((cls) => (
-                  <option key={cls.id} value={cls.id}>
+                  <option key={cls._id || cls.id} value={cls._id || cls.id}>
                     {cls.name}
                   </option>
                 ))}
@@ -305,7 +434,7 @@ const StudentManagement = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("form.selectBatch")}
+                Batch
               </label>
               <select
                 required
@@ -316,77 +445,32 @@ const StudentManagement = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={!formData.classId}
               >
-                <option value="">{t("form.selectBatch")}</option>
-                {getBatchesByClass(formData.classId).map((batch) => (
-                  <option key={batch.id} value={batch.id}>
-                    {batch.name}
-                  </option>
-                ))}
+                <option value="">Select Batch</option>
+                {formData.classId &&
+                  getBatchesByClass(formData.classId).map((batch) => (
+                    <option
+                      key={batch._id || batch.id}
+                      value={batch._id || batch.id}
+                    >
+                      {batch.name}
+                    </option>
+                  ))}
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("form.guardianName")}
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.guardianName}
-                onChange={(e) =>
-                  setFormData({ ...formData, guardianName: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("form.guardianPhone")}
-              </label>
-              <input
-                type="tel"
-                required
-                value={formData.guardianPhone}
-                onChange={(e) =>
-                  setFormData({ ...formData, guardianPhone: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t("form.admissionDate")}
-              </label>
-              <input
-                type="date"
-                required
-                value={formData.admissionDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, admissionDate: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t("form.address")}
-            </label>
-            <textarea
-              required
-              value={formData.address}
-              onChange={(e) =>
-                setFormData({ ...formData, address: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={3}
-            />
-          </div>
+          {studentError && (
+            <div className="text-red-500 text-sm">{studentError}</div>
+          )}
+          {studentSuccess && (
+            <div className="text-green-600 text-sm">{studentSuccess}</div>
+          )}
           <div className="flex space-x-3">
             <button
               type="submit"
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md"
+              disabled={studentLoading}
             >
-              {t("common.save")}
+              {studentLoading ? "Registering..." : t("common.save")}
             </button>
             <button
               type="button"
