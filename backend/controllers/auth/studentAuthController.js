@@ -92,22 +92,26 @@ const loginStudent = async (req, res) => {
 
 //Bulk Student Registration
 const registerStudentInBulk = async (req, res) => {
-  const { students } = req.body;
+  const { students, batchId, classId } = req.body;
 
   try {
     if (!Array.isArray(students) || students.length === 0) {
       return res.status(400).json({ message: "No students found" });
     }
 
+    const batch = await batchModel.findById(batchId);
+
+    if (!batch) {
+      return res.status(404).json({ message: "Batch not found" });
+    }
+
     const invalid = students.filter(
       (s) =>
-        !s.fullName?.trim() ||
-        !s.email?.trim() ||
-        !s.phoneNumber?.trim() ||
-        !s.parentPhoneNumber?.trim() ||
-        !s.password?.trim() ||
-        !s.classId ||
-        !s.batchId
+        !String(s.fullName || "").trim() ||
+        !String(s.email || "").trim() ||
+        !String(s.phoneNumber || "").trim() ||
+        !String(s.parentPhoneNumber || "").trim() ||
+        !String(s.password || "").trim()
     );
 
     if (invalid.length > 0) {
@@ -120,13 +124,13 @@ const registerStudentInBulk = async (req, res) => {
       students.map(async (s) => {
         const hashedPassword = await bcrypt.hash(s.password, 10);
         return {
-          fullName: s.fullName,
-          email: s.email,
-          phoneNumber: s.phoneNumber,
-          parentPhoneNumber: s.parentPhoneNumber,
+          fullName: s.fullName.trim(),
+          email: s.email.trim(),
+          phoneNumber: s.phoneNumber.trim(),
+          parentPhoneNumber: s.parentPhoneNumber.trim(),
           password: hashedPassword,
-          classRef: s.classId,
-          batchRef: s.batchId,
+          classRef: classId,
+          batchRef: batchId,
         };
       })
     );
@@ -134,17 +138,16 @@ const registerStudentInBulk = async (req, res) => {
     const bulkRegistration = await studentModel.insertMany(studentsData);
 
     const studentIds = bulkRegistration.map((student) => student._id);
-    // console.log(studentIds);
-    const batchId = bulkRegistration[0].batchRef;
 
-    const batch = await batchModel.findOne({ _id: batchId });
     batch.students.push(...studentIds);
     await batch.save();
 
     res.status(200).json({ bulkRegistration });
   } catch (err) {
-    res.status(500).json({ message: "Internal Server Problem" });
-    debug(err);
+    console.error(err);
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", error: err.message });
   }
 };
 

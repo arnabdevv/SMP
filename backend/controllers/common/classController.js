@@ -24,10 +24,10 @@ const createClass = async (req, res) => {
   }
 };
 
-// Fetch all classes
+// Fetch all classes with batch name & id.
 const fetchClasses = async (req, res) => {
   try {
-    const classes = await classModel.find({}).populate("batches");
+    const classes = await classModel.find({}).populate("batches", "_id name");
     res.json({ classes });
   } catch (err) {
     res

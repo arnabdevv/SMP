@@ -11,6 +11,7 @@ const getStudentsByClassAndBatch = async (req, res) => {
     // Populate classRef and batchRef for display
     const students = await studentModel
       .find(filter)
+      .select("fullName email phoneNumber parentPhoneNumber")
       .populate("classRef", "name")
       .populate("batchRef", "name");
     res.status(200).json({ students });

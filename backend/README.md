@@ -56,6 +56,7 @@ npm start
 ### Admin
 
 - **Register a new admin**
+
   - **Method:** `POST`
   - **Endpoint:** `/admin/register`
   - **Request Body:**
@@ -74,6 +75,7 @@ npm start
     ```
 
 - **Admin login**
+
   - **Method:** `POST`
   - **Endpoint:** `/admin/login`
   - **Request Body:**
@@ -92,6 +94,7 @@ npm start
     ```
 
 - **Admin logout**
+
   - **Method:** `GET`
   - **Endpoint:** `/admin/logout`
   - **Response:**
@@ -119,6 +122,7 @@ npm start
 ### Teacher
 
 - **Register a new teacher**
+
   - **Method:** `POST`
   - **Endpoint:** `/teacher/register`
   - **Request Body:**
@@ -137,6 +141,7 @@ npm start
     ```
 
 - **Teacher login**
+
   - **Method:** `POST`
   - **Endpoint:** `/teacher/login`
   - **Request Body:**
@@ -155,6 +160,7 @@ npm start
     ```
 
 - **Teacher logout**
+
   - **Method:** `GET`
   - **Endpoint:** `/teacher/logout`
   - **Response:**
@@ -182,6 +188,7 @@ npm start
 ### Student
 
 - **Register a new student**
+
   - **Method:** `POST`
   - **Endpoint:** `/student/register`
   - **Request Body:**
@@ -202,6 +209,7 @@ npm start
     ```
 
 - **Student login**
+
   - **Method:** `POST`
   - **Endpoint:** `/student/login`
   - **Request Body:**
@@ -220,6 +228,7 @@ npm start
     ```
 
 - **Register students in bulk**
+
   - **Method:** `POST`
   - **Endpoint:** `/student/bulkRegistration`
   - **Request Body:**
@@ -251,6 +260,7 @@ npm start
     ```
 
 - **Student logout**
+
   - **Method:** `GET`
   - **Endpoint:** `/student/logout`
   - **Response:**
@@ -261,6 +271,7 @@ npm start
     ```
 
 - **Get student dashboard data**
+
   - **Method:** `GET`
   - **Endpoint:** `/student/dashboard`
   - **Response:**
@@ -296,6 +307,7 @@ npm start
 ### Class
 
 - **Create a new class**
+
   - **Method:** `POST`
   - **Endpoint:** `/class/create`
   - **Request Body:**

@@ -1,5 +1,7 @@
 // Student Router
 const express = require("express");
+const router = express.Router();
+
 const {
   registerStudent,
   regis,
@@ -13,14 +15,6 @@ const { dashboard } = require("../controllers/common/commonController");
 const {
   getStudentsByClassAndBatch,
 } = require("../controllers/common/studentController");
-// GET  /api/student/list - Get students by class and/or batch (admin only)
-router.get(
-  "/list",
-  isAuthenticated,
-  authorizeRole("admin"),
-  getStudentsByClassAndBatch
-);
-const router = express.Router();
 
 // GET   /api/student/                  - Test route ("Hey Student")
 router.get("/", (req, res) => {
@@ -50,4 +44,13 @@ router.post(
 router.get("/logout", logoutStudent);
 
 router.get("/dashboard", isAuthenticated, dashboard);
+
+// GET  /api/student/list - Get students by class and/or batch (admin/teacher only)
+router.get(
+  "/list",
+  isAuthenticated,
+  authorizeRole("admin", "teacher"),
+  getStudentsByClassAndBatch
+);
+
 module.exports = router;

@@ -12,7 +12,7 @@ router.get("/", (req, res) => {
   res.send("Class Router");
 });
 
-// GET   /api/class/all      - Get all classes with populated batches
+// GET   /api/class/all      - Get all classes with populated batches(id & name)
 const classModel = require("../models/classModel");
 router.get("/all", fetchClasses);
 
