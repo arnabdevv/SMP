@@ -6,7 +6,9 @@ const {
   logoutTeacher,
 } = require("../controllers/auth/teacherAuthController");
 const { isAuthenticated } = require("../middleware/authMiddleware");
+const { authorizeRole } = require("../middleware/roleMiddleware");
 const { dashboard } = require("../controllers/common/commonController");
+const { fetchTeachers } = require("../controllers/common/teacherController");
 const router = express.Router();
 
 // GET   /api/teacher/             - Test route ("Hey Teacher")
@@ -25,5 +27,12 @@ router.get("/logout", logoutTeacher);
 
 // GET   /api/teacher/dashboard    - Teacher dashboard (auth required)
 router.get("/dashboard", isAuthenticated, dashboard);
+
+router.get(
+  "/getAllTeachers",
+  isAuthenticated,
+  authorizeRole("admin"),
+  fetchTeachers
+);
 
 module.exports = router;
