@@ -4,19 +4,16 @@
 
 This is the frontend for the School Management Platform (SMP). It is a React + Vite + Tailwind CSS application for managing school operations, including students, teachers, classes, exams, fees, and more. The codebase is modular, scalable, and uses React Context for state management.
 
----
-
 ## Tech Stack
 
 - **Framework:** React (JSX)
 - **Build Tool:** Vite
 - **Styling:** Tailwind CSS
-- **Routing:** React Router DOM (if present)
+- **HTTP Client:** Axios
+- **Routing:** React Router DOM
 - **State Management:** React Context API
 - **Icons:** lucide-react
 - **Linting:** ESLint
-
----
 
 ## Project Structure
 
@@ -44,60 +41,190 @@ frontend/
 
 ---
 
-## Routing: Pages, Components, and Contexts
+## Context Usage
 
-| Route                 | Page/Component                 | Description                                 | Contexts Used                    |
-| --------------------- | ------------------------------ | ------------------------------------------- | -------------------------------- |
-| `/login`              | `Auth/Login.jsx`               | Login page for all users                    | `AuthContext`                    |
-| `/admin/dashboard`    | `Admin/AdminDashboard.jsx`     | Admin dashboard (stats, quick actions, etc) | `DataContext`, `LanguageContext` |
-| `/admin/classes`      | `Admin/ClassManagement.jsx`    | Manage classes                              | `DataContext`                    |
-| `/admin/fees`         | `Admin/FeeRecords.jsx`         | Manage/view fee records                     | `DataContext`                    |
-| `/admin/students`     | `Admin/StudentManagement.jsx`  | Manage students                             | `DataContext`                    |
-| `/admin/teachers`     | `Admin/TeacherManagement.jsx`  | Manage teachers                             | `DataContext`                    |
-| `/student/dashboard`  | `Student/StudentDashboard.jsx` | Student dashboard                           | `DataContext`                    |
-| `/teacher/dashboard`  | `Teacher/TeacherDashboard.jsx` | Teacher dashboard                           | `DataContext`                    |
-| `/teacher/exams`      | `Teacher/ExamManagement.jsx`   | Manage/view exams                           | `DataContext`                    |
-| `/teacher/attendance` | `Teacher/Attendance.jsx`       | Mark/view attendance                        | `DataContext`                    |
-| `/teacher/students`   | `Teacher/StudentList.jsx`      | List of students for teacher                | `DataContext`                    |
+### AuthContext
 
-**Layout Components:**
+```jsx
+// AuthContext.jsx
+export const AuthContext = createContext({
+  user: null,
+  login: () => {},
+  logout: () => {},
+  isAuthenticated: false,
+  userRole: null,
+});
+```
 
-- `Layout/Layout.jsx` or `Layout/Layout.tsx`: Main layout wrapper for all pages (header/sidebar)
-- `Layout/Header.jsx`: Top navigation bar
-- `Layout/Sidebar.jsx`: Sidebar navigation
+Usage:
 
-**Common Components:**
+```jsx
+const { user, login, logout } = useAuth();
+```
 
-- `Common/DataTable.jsx`: Used in management/listing pages (students, teachers, fees, etc.)
-- `Common/Modal.jsx`: Used for popups/forms
-- `Common/StatsCard.jsx`: Used in dashboards for stats
+### DataContext
 
-**Contexts:**
+```jsx
+// DataContext.jsx
+export const DataContext = createContext({
+  students: [],
+  teachers: [],
+  classes: [],
+  batches: [],
+  fetchData: () => {},
+  refreshData: () => {},
+});
+```
 
-- `AuthContext.jsx`: Handles authentication state, user info, login/logout
-- `DataContext.jsx`: Provides all app data (students, teachers, classes, fees, exams, etc.)
-- `LanguageContext.jsx`: Handles language/i18n (translations)
+Usage:
 
----
+```jsx
+const { students, fetchData } = useData();
+```
 
-## How Contexts Are Used
+### LanguageContext
 
-- **AuthContext**: Used in `Login.jsx`, and in layout/components to check user role, protect routes, and handle logout.
-- **DataContext**: Used in all dashboard and management pages to fetch and provide data (students, teachers, classes, fees, exams, etc.).
-- **LanguageContext**: Used in all components for translations (e.g., `t('dashboard.welcome')`).
+```jsx
+// LanguageContext.jsx
+export const LanguageContext = createContext({
+  language: "en",
+  setLanguage: () => {},
+  t: (key) => key,
+});
+```
 
----
+Usage:
 
-## Key Features
+```jsx
+const { t, setLanguage } = useLanguage();
+```
 
-- **Role-based Dashboards:** Admin, Teacher, and Student each have their own dashboard and management pages.
-- **Authentication:** Login system with context-based state.
-- **Data Management:** CRUD for students, teachers, classes, fees, and exams.
-- **Reusable UI:** DataTable, Modal, StatsCard, etc.
-- **Responsive Design:** Tailwind CSS for mobile-friendly layouts.
-- **i18n Support:** LanguageContext for translations.
+## API Integration
 
----
+### Axios Setup
+
+```javascript
+// api/axios.js
+import axios from "axios";
+
+const instance = axios.create({
+  baseURL: "/api",
+});
+
+instance.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export default instance;
+```
+
+### API Modules
+
+- `admin.js`: Admin-specific API calls
+- `student.js`: Student management APIs
+- `classBatch.js`: Class and batch operations
+- `axios.js`: Configured axios instance
+
+## Features
+
+### Authentication & Authorization
+
+- Role-based access control
+- JWT token management
+- Protected routes
+- Login/logout functionality
+
+### Admin Features
+
+- Dashboard with statistics
+- Teacher management
+- Student management
+- Class/batch management
+- Fee management
+
+### Teacher Features
+
+- Dashboard
+- Attendance management
+- Student list view
+- Exam management
+
+### Student Features
+
+- Personal dashboard
+- View attendance
+- View exam results
+
+## Getting Started
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Set up environment variables:
+
+   ```
+   VITE_API_URL=http://localhost:3000/api
+   ```
+
+3. Start development server:
+
+   ```bash
+   npm run dev
+   ```
+
+4. Build for production:
+   ```bash
+   npm run build
+   ```
+
+## Contributing
+
+1. Branch naming: `feature/feature-name` or `fix/bug-name`
+2. Commit messages: Follow conventional commits
+3. Create PRs with clear descriptions
+4. Ensure ESLint passes: `npm run lint`
+
+## Common Components Usage
+
+### DataTable
+
+```jsx
+<DataTable
+  data={students}
+  columns={[
+    { key: "name", label: "Name" },
+    { key: "email", label: "Email" },
+  ]}
+  onSort={(key) => handleSort(key)}
+  onFilter={(filters) => handleFilter(filters)}
+/>
+```
+
+### Modal
+
+```jsx
+<Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Add Student">
+  <StudentForm onSubmit={handleSubmit} />
+</Modal>
+```
+
+### StatsCard
+
+```jsx
+<StatsCard
+  title="Total Students"
+  value={studentCount}
+  icon={<UserIcon />}
+  trend={10}
+/>
+```
 
 ## Getting Started
 

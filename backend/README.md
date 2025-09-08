@@ -32,18 +32,18 @@ This document provides a comprehensive overview of the backend for the School Ma
 
 ### Installation
 
-1.  Clone the repository.
-2.  Navigate to the `backend` directory.
-3.  Install the dependencies:
-    ```bash
-    npm install
-    ```
-4.  Create a `.env` file in the `backend` directory and add the following environment variables:
-    ```
-    PORT=3000
-    MONGO_URI=<your_mongodb_connection_string>
-    JWT_SECRET=<your_jwt_secret>
-    ```
+1. Clone the repository.
+2. Navigate to the `backend` directory.
+3. Install the dependencies:
+   ```bash
+   npm install
+   ```
+4. Create a `.env` file in the `backend` directory and add the following environment variables:
+   ```
+   PORT=3000
+   MONGO_URI=<your_mongodb_connection_string>
+   JWT_SECRET=<your_jwt_secret>
+   ```
 
 ### Running the Application
 
@@ -53,12 +53,18 @@ npm start
 
 ## API Endpoints
 
-### Admin
+### Admin Routes
 
-- **Register a new admin**
+- **Test Route**
+
+  - **Method:** `GET`
+  - **Endpoint:** `/api/admin/`
+  - **Response:** "Hey Admin"
+
+- **Register Admin**
 
   - **Method:** `POST`
-  - **Endpoint:** `/admin/register`
+  - **Endpoint:** `/api/admin/register`
   - **Request Body:**
     ```json
     {
@@ -67,17 +73,11 @@ npm start
       "password": "password123"
     }
     ```
-  - **Response:**
-    ```json
-    {
-      "message": "Admin Register Successful"
-    }
-    ```
 
-- **Admin login**
+- **Admin Login**
 
   - **Method:** `POST`
-  - **Endpoint:** `/admin/login`
+  - **Endpoint:** `/api/admin/login`
   - **Request Body:**
     ```json
     {
@@ -85,19 +85,17 @@ npm start
       "password": "password123"
     }
     ```
-  - **Response:**
-    ```json
-    {
-      "message": "Login Successful",
-      "token": "your_jwt_token"
-    }
-    ```
 
-- **Admin logout**
+- **Admin Logout**
 
   - **Method:** `GET`
-  - **Endpoint:** `/admin/logout`
-  - **Response:**
+  - **Endpoint:** `/api/admin/logout`
+
+- **Admin Dashboard**
+
+  - **Method:** `GET`
+  - **Endpoint:** `/api/admin/dashboard`
+  - **Auth Required:** Yes
     ```json
     {
       "message": "Logout Successfully"
