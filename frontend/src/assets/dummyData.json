@@ -1,0 +1,275 @@
+{
+  "admins": [
+    {
+      "id": "admin001",
+      "name": "Super Admin",
+      "role": "admin"
+    }
+  ],
+  "teachers": [
+    {
+      "id": "teacher001",
+      "name": "Mr. Rakesh Sharma",
+      "subject": "Mathematics",
+      "role": "teacher"
+    },
+    {
+      "id": "teacher002",
+      "name": "Ms. Ananya Das",
+      "subject": "English",
+      "role": "teacher"
+    }
+  ],
+  "classes": [
+    {
+      "id": "class10",
+      "name": "Class 10",
+      "batches": ["batch10A", "batch10B"]
+    },
+    {
+      "id": "class9",
+      "name": "Class 9",
+      "batches": ["batch9C", "batch9D"]
+    }
+  ],
+  "batches": [
+    {
+      "id": "batch10A",
+      "name": "A",
+      "students": ["stu001", "stu002"]
+    },
+    {
+      "id": "batch10B",
+      "name": "B",
+      "students": ["stu003"]
+    },
+    {
+      "id": "batch9C",
+      "name": "C",
+      "students": ["stu004", "stu005"]
+    },
+    {
+      "id": "batch9D",
+      "name": "D",
+      "students": ["stu006"]
+    }
+  ],
+  "exams": [
+    {
+      "id": "exam001",
+      "name": "Mid Term Test - Mathematics",
+      "date": "2025-07-15",
+      "classId": "class10",
+      "className": "Class 10",
+      "subject": "Mathematics",
+      "totalMarks": 100,
+      "createdBy": "teacher001"
+    },
+    {
+      "id": "exam002",
+      "name": "Monthly Test - English",
+      "date": "2025-08-01",
+      "classId": "class9",
+      "className": "Class 9",
+      "subject": "English",
+      "totalMarks": 50,
+      "createdBy": "teacher002"
+    }
+  ],
+  "examResults": [
+    {
+      "examId": "exam001",
+      "studentId": "stu001",
+      "marksObtained": 85,
+      "remarks": "Good performance"
+    },
+    {
+      "examId": "exam001",
+      "studentId": "stu002",
+      "marksObtained": 92,
+      "remarks": "Excellent"
+    },
+    {
+      "examId": "exam002",
+      "studentId": "stu004",
+      "marksObtained": 45,
+      "remarks": "Very good"
+    },
+    {
+      "examId": "exam002",
+      "studentId": "stu005",
+      "marksObtained": 42,
+      "remarks": "Good effort"
+    }
+  ],
+  "students": [
+    {
+      "id": "stu001",
+      "name": "Rahul Sen",
+      "personalPhone": "9876543210",
+      "parentPhone": "9123456780",
+      "classId": "class10",
+      "className": "Class 10",
+      "batchId": "batch10A",
+      "batchName": "A",
+      "sessionId": "session2024",
+      "session": "2024",
+      "fees": {
+        "January": "paid",
+        "February": "paid",
+        "March": "due",
+        "April": "paid",
+        "May": "due",
+        "June": "paid",
+        "July": "due",
+        "August": "paid",
+        "September": "due",
+        "October": "paid",
+        "November": "due",
+        "December": "paid"
+      },
+      "role": "student"
+    },
+    {
+      "id": "stu002",
+      "name": "Priya Mukherjee",
+      "personalPhone": "9988776655",
+      "parentPhone": "9112233445",
+      "classId": "class10",
+      "className": "Class 10",
+      "batchId": "batch10A",
+      "batchName": "A",
+      "sessionId": "session2024",
+      "session": "2024",
+      "fees": {
+        "January": "paid",
+        "February": "paid",
+        "March": "paid",
+        "April": "paid",
+        "May": "paid",
+        "June": "paid",
+        "July": "due",
+        "August": "due",
+        "September": "due",
+        "October": "paid",
+        "November": "paid",
+        "December": "paid"
+      },
+      "role": "student"
+    },
+    {
+      "id": "stu003",
+      "name": "Arjun Das",
+      "personalPhone": "9876501234",
+      "parentPhone": "9198765432",
+      "classId": "class10",
+      "className": "Class 10",
+      "batchId": "batch10B",
+      "batchName": "B",
+      "sessionId": "session2024",
+      "session": "2024",
+      "fees": {
+        "January": "paid",
+        "February": "due",
+        "March": "due",
+        "April": "paid",
+        "May": "due",
+        "June": "paid",
+        "July": "paid",
+        "August": "due",
+        "September": "paid",
+        "October": "due",
+        "November": "paid",
+        "December": "due"
+      },
+      "role": "student"
+    },
+    {
+      "id": "stu004",
+      "name": "Sneha Roy",
+      "personalPhone": "9811122233",
+      "parentPhone": "9191122233",
+      "classId": "class9",
+      "className": "Class 9",
+      "batchId": "batch9C",
+      "batchName": "C",
+      "sessionId": "session2024",
+      "session": "2024",
+      "fees": {
+        "January": "paid",
+        "February": "paid",
+        "March": "paid",
+        "April": "due",
+        "May": "paid",
+        "June": "paid",
+        "July": "paid",
+        "August": "due",
+        "September": "paid",
+        "October": "paid",
+        "November": "due",
+        "December": "paid"
+      },
+      "role": "student"
+    },
+    {
+      "id": "stu005",
+      "name": "Abhishek Paul",
+      "personalPhone": "9876677889",
+      "parentPhone": "9198776655",
+      "classId": "class9",
+      "className": "Class 9",
+      "batchId": "batch9C",
+      "batchName": "C",
+      "sessionId": "session2024",
+      "session": "2024",
+      "fees": {
+        "January": "due",
+        "February": "due",
+        "March": "paid",
+        "April": "paid",
+        "May": "due",
+        "June": "paid",
+        "July": "paid",
+        "August": "paid",
+        "September": "due",
+        "October": "paid",
+        "November": "paid",
+        "December": "paid"
+      },
+      "role": "student"
+    },
+    {
+      "id": "stu006",
+      "name": "Mira Ghosh",
+      "personalPhone": "9900112233",
+      "parentPhone": "9199001122",
+      "classId": "class9",
+      "className": "Class 9",
+      "batchId": "batch9D",
+      "batchName": "D",
+      "sessionId": "session2024",
+      "session": "2024",
+      "fees": {
+        "January": "paid",
+        "February": "paid",
+        "March": "due",
+        "April": "due",
+        "May": "paid",
+        "June": "paid",
+        "July": "paid",
+        "August": "due",
+        "September": "paid",
+        "October": "paid",
+        "November": "paid",
+        "December": "due"
+      },
+      "role": "student"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "session2024",
+      "year": "2024"
+    }
+  ]
+}
