@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
 import Navbar from "../components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +9,6 @@ import dummyData from "../assets/dummyData.json";
 import { calculateStudentFeesStats } from "../lib/dataUtils";
 
 // Get current student data (using first student for demo)
-const currentStudent = dummyData.students[0];
 const mockTests = [
   {
     id: 1,
@@ -33,6 +34,38 @@ const mockTests = [
 ];
 
 const StudentDashboard = () => {
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3000/teacher/dashboard`, {
+          withCredentials: true, // if using cookies for JWT
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // if using localStorage
+          },
+        });
+        setUserData(res.data);
+      } catch (err) {
+        if (err.response) {
+          setError(err.response.data.error || err.response.data.message);
+        } else {
+          setError("Network error. Check backend connection.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+    // console.log(userData);
+  }, []);
+
+  if (loading) return <p>Loading dashboard...</p>;
+  console.log(userData);
+
   const getInitials = (name) => {
     if (!name) return "ST";
     return name
@@ -42,7 +75,7 @@ const StudentDashboard = () => {
       .toUpperCase();
   };
 
-  const feesStats = calculateStudentFeesStats(currentStudent.fees);
+  const feesStats = calculateStudentFeesStats(userData.fees);
   const monthlyFee = 1500; // Assuming fixed monthly fee
 
   return (
@@ -77,20 +110,20 @@ const StudentDashboard = () => {
                       className="text-2xl font-semibold text-white"
                       data-testid="student-initials"
                     >
-                      {getInitials(currentStudent.name)}
+                      {getInitials(userData.fullName)}
                     </span>
                   </div>
                   <h3
                     className="text-lg font-semibold text-foreground"
                     data-testid="student-name"
                   >
-                    {currentStudent.name}
+                    {userData.fullName}
                   </h3>
                   <p
                     className="text-sm text-muted-foreground"
                     data-testid="student-id"
                   >
-                    Student ID: {currentStudent.id}
+                    Student ID: {userData.id}
                   </p>
                 </div>
 
@@ -103,7 +136,7 @@ const StudentDashboard = () => {
                       className="text-sm text-foreground"
                       data-testid="student-class"
                     >
-                      {currentStudent.className}
+                      {userData.className}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-border">
@@ -114,7 +147,7 @@ const StudentDashboard = () => {
                       className="text-sm text-foreground"
                       data-testid="student-batch"
                     >
-                      {currentStudent.batchName}
+                      {userData.batchName}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-border">
@@ -125,7 +158,7 @@ const StudentDashboard = () => {
                       className="text-sm text-foreground"
                       data-testid="student-batch"
                     >
-                      {currentStudent.session}
+                      {userData.session}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-border">
@@ -136,7 +169,7 @@ const StudentDashboard = () => {
                       className="text-sm text-foreground"
                       data-testid="student-email"
                     >
-                      {currentStudent.email || "Not Provided"}
+                      {userData.email || "Not Provided"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-border">
@@ -147,7 +180,7 @@ const StudentDashboard = () => {
                       className="text-sm text-foreground"
                       data-testid="student-phone"
                     >
-                      {currentStudent.personalPhone}
+                      {userData.personalPhone}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-border">
@@ -158,7 +191,7 @@ const StudentDashboard = () => {
                       className="text-sm text-foreground"
                       data-testid="student-phone"
                     >
-                      {currentStudent.personalPhone}
+                      {userData.personalPhone}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">
@@ -169,10 +202,8 @@ const StudentDashboard = () => {
                       className="text-sm text-foreground"
                       data-testid="student-dob"
                     >
-                      {currentStudent.dateOfBirth
-                        ? new Date(
-                            currentStudent.dateOfBirth
-                          ).toLocaleDateString()
+                      {userData.dateOfBirth
+                        ? new Date(userData.dateOfBirth).toLocaleDateString()
                         : "Not provided"}
                     </span>
                   </div>
@@ -253,7 +284,7 @@ const StudentDashboard = () => {
                     </h3>
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {Object.entries(currentStudent.fees).map(
+                        {Object.entries(userData.fees).map(
                           ([month, status]) => (
                             <div
                               key={month}

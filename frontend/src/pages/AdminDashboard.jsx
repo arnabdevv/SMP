@@ -1,8 +1,21 @@
-import { Link } from 'wouter';
-import Navbar from '../components/Navbar';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, BookOpen, Layers, GraduationCap, Plus, Edit, Trash2, ArrowRight } from 'lucide-react';
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { Link } from "wouter";
+import Navbar from "../components/Navbar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Users,
+  BookOpen,
+  Layers,
+  GraduationCap,
+  Plus,
+  Edit,
+  Trash2,
+  ArrowRight,
+} from "lucide-react";
+
+//Dynamic Data
 
 // Static Data
 const stats = {
@@ -13,44 +26,108 @@ const stats = {
 };
 
 const teachers = [
-  { id: 't1', user: { name: 'Dr. Evelyn Reed' }, subject: 'Physics' },
-  { id: 't2', user: { name: 'Mr. Samuel Carter' }, subject: 'Mathematics' },
+  { id: "t1", user: { name: "Dr. Evelyn Reed" }, subject: "Physics" },
+  { id: "t2", user: { name: "Mr. Samuel Carter" }, subject: "Mathematics" },
 ];
 
 const classes = [
-  { id: 'c1', name: 'Class 10A', teacher: { user: { name: 'Dr. Evelyn Reed' } } },
-  { id: 'c2', name: 'Class 10B', teacher: { user: { name: 'Mr. Samuel Carter' } } },
+  {
+    id: "c1",
+    name: "Class 10A",
+    teacher: { user: { name: "Dr. Evelyn Reed" } },
+  },
+  {
+    id: "c2",
+    name: "Class 10B",
+    teacher: { user: { name: "Mr. Samuel Carter" } },
+  },
 ];
 
 const batches = [
-  { id: 'b1', name: '2024-2025', academicYear: '2024' },
-  { id: 'b2', name: '2023-2024', academicYear: '2023' },
+  { id: "b1", name: "2024-2025", academicYear: "2024" },
+  { id: "b2", name: "2023-2024", academicYear: "2023" },
 ];
 
 const students = [
-  { id: 's1', user: { name: 'Alice Johnson' }, studentId: 'STU2024001', class: { name: 'Class 10A' } },
-  { id: 's2', user: { name: 'Bob Williams' }, studentId: 'STU2024002', class: { name: 'Class 10B' } },
+  {
+    id: "s1",
+    user: { name: "Alice Johnson" },
+    studentId: "STU2024001",
+    class: { name: "Class 10A" },
+  },
+  {
+    id: "s2",
+    user: { name: "Bob Williams" },
+    studentId: "STU2024002",
+    class: { name: "Class 10B" },
+  },
 ];
 
 const AdminDashboard = () => {
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3000/admin/dashboard`, {
+          withCredentials: true, // if using cookies for JWT
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // if using localStorage
+          },
+        });
+        setUserData(res.data);
+      } catch (err) {
+        if (err.response) {
+          setError(err.response.data.error || err.response.data.message);
+        } else {
+          setError("Network error. Check backend connection.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+    // console.log(userData);
+  }, []);
+
+  if (loading) return <p>Loading dashboard...</p>;
+  // console.log(userData);
+
   const getInitials = (name) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
   };
 
   const getRandomColor = (index) => {
-    const colors = ['bg-blue-600', 'bg-green-600', 'bg-purple-600', 'bg-orange-600', 'bg-indigo-600'];
+    const colors = [
+      "bg-blue-600",
+      "bg-green-600",
+      "bg-purple-600",
+      "bg-orange-600",
+      "bg-indigo-600",
+    ];
     return colors[index % colors.length];
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      
+      <Navbar userData={userData} />
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Dashboard Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground mt-2">Manage your school's teachers, classes, batches, and students</p>
+          <h1 className="text-3xl font-semibold text-foreground">
+            Admin Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Manage your school's teachers, classes, batches, and students
+          </p>
         </div>
 
         {/* Quick Stats */}
@@ -59,8 +136,13 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Teachers</p>
-                  <p className="text-3xl font-semibold text-foreground" data-testid="stat-teachers">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Total Teachers
+                  </p>
+                  <p
+                    className="text-3xl font-semibold text-foreground"
+                    data-testid="stat-teachers"
+                  >
                     {stats?.totalTeachers || 0}
                   </p>
                 </div>
@@ -75,8 +157,13 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Classes</p>
-                  <p className="text-3xl font-semibold text-foreground" data-testid="stat-classes">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Total Classes
+                  </p>
+                  <p
+                    className="text-3xl font-semibold text-foreground"
+                    data-testid="stat-classes"
+                  >
                     {stats?.totalClasses || 0}
                   </p>
                 </div>
@@ -91,8 +178,13 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Batches</p>
-                  <p className="text-3xl font-semibold text-foreground" data-testid="stat-batches">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Total Batches
+                  </p>
+                  <p
+                    className="text-3xl font-semibold text-foreground"
+                    data-testid="stat-batches"
+                  >
                     {stats?.totalBatches || 0}
                   </p>
                 </div>
@@ -107,8 +199,13 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Students</p>
-                  <p className="text-3xl font-semibold text-foreground" data-testid="stat-students">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Total Students
+                  </p>
+                  <p
+                    className="text-3xl font-semibold text-foreground"
+                    data-testid="stat-students"
+                  >
                     {stats?.totalStudents || 0}
                   </p>
                 </div>
@@ -140,25 +237,46 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="space-y-4">
                 {teachers?.slice(0, 2).map((teacher, index) => (
-                  <div key={teacher.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-md">
+                  <div
+                    key={teacher.id}
+                    className="flex items-center justify-between p-4 bg-muted/50 rounded-md"
+                  >
                     <div className="flex items-center">
-                      <div className={`w-10 h-10 ${getRandomColor(index)} rounded-full flex items-center justify-center text-white font-medium`}>
-                        {getInitials(teacher.user?.name || 'Unknown')}
+                      <div
+                        className={`w-10 h-10 ${getRandomColor(
+                          index
+                        )} rounded-full flex items-center justify-center text-white font-medium`}
+                      >
+                        {getInitials(teacher.user?.name || "Unknown")}
                       </div>
                       <div className="ml-3">
-                        <p className="font-medium text-foreground" data-testid={`teacher-name-${index}`}>
-                          {teacher.user?.name || 'Unknown'}
+                        <p
+                          className="font-medium text-foreground"
+                          data-testid={`teacher-name-${index}`}
+                        >
+                          {teacher.user?.name || "Unknown"}
                         </p>
-                        <p className="text-sm text-muted-foreground" data-testid={`teacher-subject-${index}`}>
+                        <p
+                          className="text-sm text-muted-foreground"
+                          data-testid={`teacher-subject-${index}`}
+                        >
                           {teacher.subject}
                         </p>
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <Button variant="ghost" size="sm" data-testid={`button-edit-teacher-${index}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        data-testid={`button-edit-teacher-${index}`}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" data-testid={`button-delete-teacher-${index}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        data-testid={`button-delete-teacher-${index}`}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -166,7 +284,11 @@ const AdminDashboard = () => {
                 ))}
               </div>
               <Link href="/admin/teachers">
-                <Button variant="link" className="w-full mt-4 p-0" data-testid="link-view-all-teachers">
+                <Button
+                  variant="link"
+                  className="w-full mt-4 p-0"
+                  data-testid="link-view-all-teachers"
+                >
                   View All Teachers <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
@@ -191,20 +313,37 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="space-y-4">
                 {classes?.slice(0, 2).map((cls, index) => (
-                  <div key={cls.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-md">
+                  <div
+                    key={cls.id}
+                    className="flex items-center justify-between p-4 bg-muted/50 rounded-md"
+                  >
                     <div>
-                      <p className="font-medium text-foreground" data-testid={`class-name-${index}`}>
+                      <p
+                        className="font-medium text-foreground"
+                        data-testid={`class-name-${index}`}
+                      >
                         {cls.name}
                       </p>
-                      <p className="text-sm text-muted-foreground" data-testid={`class-teacher-${index}`}>
-                        Teacher: {cls.teacher?.user?.name || 'Unassigned'}
+                      <p
+                        className="text-sm text-muted-foreground"
+                        data-testid={`class-teacher-${index}`}
+                      >
+                        Teacher: {cls.teacher?.user?.name || "Unassigned"}
                       </p>
                     </div>
                     <div className="flex space-x-2">
-                      <Button variant="ghost" size="sm" data-testid={`button-edit-class-${index}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        data-testid={`button-edit-class-${index}`}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" data-testid={`button-delete-class-${index}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        data-testid={`button-delete-class-${index}`}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -212,7 +351,11 @@ const AdminDashboard = () => {
                 ))}
               </div>
               <Link href="/admin/classes">
-                <Button variant="link" className="w-full mt-4 p-0" data-testid="link-view-all-classes">
+                <Button
+                  variant="link"
+                  className="w-full mt-4 p-0"
+                  data-testid="link-view-all-classes"
+                >
                   View All Classes <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
@@ -237,20 +380,37 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="space-y-4">
                 {batches?.slice(0, 2).map((batch, index) => (
-                  <div key={batch.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-md">
+                  <div
+                    key={batch.id}
+                    className="flex items-center justify-between p-4 bg-muted/50 rounded-md"
+                  >
                     <div>
-                      <p className="font-medium text-foreground" data-testid={`batch-name-${index}`}>
+                      <p
+                        className="font-medium text-foreground"
+                        data-testid={`batch-name-${index}`}
+                      >
                         {batch.name}
                       </p>
-                      <p className="text-sm text-muted-foreground" data-testid={`batch-year-${index}`}>
+                      <p
+                        className="text-sm text-muted-foreground"
+                        data-testid={`batch-year-${index}`}
+                      >
                         Academic Year: {batch.academicYear}
                       </p>
                     </div>
                     <div className="flex space-x-2">
-                      <Button variant="ghost" size="sm" data-testid={`button-edit-batch-${index}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        data-testid={`button-edit-batch-${index}`}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" data-testid={`button-delete-batch-${index}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        data-testid={`button-delete-batch-${index}`}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -258,7 +418,11 @@ const AdminDashboard = () => {
                 ))}
               </div>
               <Link href="/admin/batches">
-                <Button variant="link" className="w-full mt-4 p-0" data-testid="link-view-all-batches">
+                <Button
+                  variant="link"
+                  className="w-full mt-4 p-0"
+                  data-testid="link-view-all-batches"
+                >
                   View All Batches <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
@@ -283,28 +447,52 @@ const AdminDashboard = () => {
             <CardContent className="p-6">
               <div className="space-y-4">
                 {students?.slice(0, 2).map((student, index) => (
-                  <div key={student.id} className="flex items-center justify-between p-4 bg-muted/50 rounded-md">
+                  <div
+                    key={student.id}
+                    className="flex items-center justify-between p-4 bg-muted/50 rounded-md"
+                  >
                     <div className="flex items-center">
-                      <div className={`w-10 h-10 ${getRandomColor(index + 2)} rounded-full flex items-center justify-center text-white font-medium`}>
-                        {getInitials(student.user?.name || 'Unknown')}
+                      <div
+                        className={`w-10 h-10 ${getRandomColor(
+                          index + 2
+                        )} rounded-full flex items-center justify-center text-white font-medium`}
+                      >
+                        {getInitials(student.user?.name || "Unknown")}
                       </div>
                       <div className="ml-3">
-                        <p className="font-medium text-foreground" data-testid={`student-name-${index}`}>
-                          {student.user?.name || 'Unknown'}
+                        <p
+                          className="font-medium text-foreground"
+                          data-testid={`student-name-${index}`}
+                        >
+                          {student.user?.name || "Unknown"}
                         </p>
-                        <p className="text-sm text-muted-foreground" data-testid={`student-class-${index}`}>
-                          {student.class?.name || 'No class assigned'}
+                        <p
+                          className="text-sm text-muted-foreground"
+                          data-testid={`student-class-${index}`}
+                        >
+                          {student.class?.name || "No class assigned"}
                         </p>
-                        <p className="text-xs text-muted-foreground" data-testid={`student-id-${index}`}>
+                        <p
+                          className="text-xs text-muted-foreground"
+                          data-testid={`student-id-${index}`}
+                        >
                           ID: {student.studentId}
                         </p>
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <Button variant="ghost" size="sm" data-testid={`button-edit-student-${index}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        data-testid={`button-edit-student-${index}`}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" data-testid={`button-delete-student-${index}`}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        data-testid={`button-delete-student-${index}`}
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -312,7 +500,11 @@ const AdminDashboard = () => {
                 ))}
               </div>
               <Link href="/admin/students">
-                <Button variant="link" className="w-full mt-4 p-0" data-testid="link-view-all-students">
+                <Button
+                  variant="link"
+                  className="w-full mt-4 p-0"
+                  data-testid="link-view-all-students"
+                >
                   View All Students <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>

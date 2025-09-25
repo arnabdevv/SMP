@@ -1,8 +1,11 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { Home, Users, BookOpen } from "lucide-react";
+import { Home, Users, BookOpen, LogOut } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 const TeacherSidebar = () => {
+  const { logout } = useAuth();
   const [location] = useLocation();
   const navItems = [
     { icon: Home, label: "Dashboard", path: "/teacher-dashboard" },
@@ -39,6 +42,18 @@ const TeacherSidebar = () => {
             );
           })}
         </nav>
+        
+        {/* Logout Button */}
+        <div className="p-4 border-t border-border">
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-muted-foreground hover:text-foreground"
+            onClick={logout}
+          >
+            <LogOut className="mr-3 h-5 w-5" />
+            Logout
+          </Button>
+        </div>
       </div>
     </div>
   );

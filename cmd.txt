@@ -1,2 +1,5 @@
 $env:DEBUG = "development:*"
 $env:NODE_ENV = "development"
+
+test1@admin.com
+test

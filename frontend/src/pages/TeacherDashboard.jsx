@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, GraduationCap } from "lucide-react";
 import TeacherSidebar from "@/components/TeacherSidebar";
@@ -11,12 +13,43 @@ import {
 } from "../lib/dataUtils";
 
 // Get current teacher data (using first teacher for demo)
-const currentTeacher = dummyData.teachers[0];
 const classes = dummyData.classes;
 const batches = dummyData.batches;
 const students = dummyData.students;
 
 const TeacherDashboard = () => {
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3000/teacher/dashboard`, {
+          withCredentials: true, // if using cookies for JWT
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // if using localStorage
+          },
+        });
+        setUserData(res.data);
+      } catch (err) {
+        if (err.response) {
+          setError(err.response.data.error || err.response.data.message);
+        } else {
+          setError("Network error. Check backend connection.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+    // console.log(userData);
+  }, []);
+
+  if (loading) return <p>Loading dashboard...</p>;
+  console.log(userData);
+
   const getInitials = (name) => {
     if (!name) return "T";
     return name
@@ -28,7 +61,7 @@ const TeacherDashboard = () => {
 
   // Remove Navbar since we have sidebar now
   const teacherStats = calculateTeacherStats(
-    currentTeacher,
+    userData,
     classes,
     batches,
     students
@@ -62,32 +95,36 @@ const TeacherDashboard = () => {
                 <div className="text-center mb-6">
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
                     <span className="text-2xl font-semibold text-white">
-                      {getInitials(currentTeacher.name)}
+                      {getInitials(userData.fullName)}
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold text-foreground">
-                    {currentTeacher.name}
+                    {userData.fullName}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {currentTeacher.subject} Teacher
+                    {userData.subject
+                      ? `${userData.subject} Teacher`
+                      : "Not provided"}
                   </p>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center py-2 border-b border-border">
+                  {/* <div className="flex justify-between items-center py-2 border-b border-border">
                     <span className="text-sm font-medium text-muted-foreground">
                       ID
                     </span>
                     <span className="text-sm text-foreground">
-                      {currentTeacher.id}
+                      {userData.id}
                     </span>
-                  </div>
+                  </div> */}
                   <div className="flex justify-between items-center py-2 border-b border-border">
                     <span className="text-sm font-medium text-muted-foreground">
                       Subject
                     </span>
                     <span className="text-sm text-foreground">
-                      {currentTeacher.subject}
+                      {userData.subject
+                        ? `${userData.subject} Teacher`
+                        : "Not provided"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-border">
@@ -95,7 +132,7 @@ const TeacherDashboard = () => {
                       Role
                     </span>
                     <span className="text-sm text-foreground capitalize">
-                      {currentTeacher.role}
+                      {userData.role}
                     </span>
                   </div>
                 </div>

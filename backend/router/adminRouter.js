@@ -10,21 +10,21 @@ const {
 const { isAuthenticated } = require("../middleware/authMiddleware");
 const { dashboard } = require("../controllers/common/commonController");
 
-// GET   /api/admin/             - Test route ("Hey Admin")
+// GET   /localhost:3000/admin/             - Test route ("Hey Admin")
 router.get("/", (req, res) => {
   res.json({ message: "Hey Admin" });
 });
 
-// POST  /api/admin/register     - Register a new admin
+// POST  /localhost:3000/admin/register     - Register a new admin
 router.post("/register", registerAdmin);
 
-// POST  /api/admin/login        - Admin login
+// POST  /localhost:3000/admin/login        - Admin login
 router.post("/login", loginAdmin);
 
-// GET   /api/admin/logout       - Admin logout
+// GET   /localhost:3000/admin/logout       - Admin logout
 router.get("/logout", logoutAdmin);
 
-// GET   /api/admin/dashboard    - Admin dashboard (auth required)
+// GET   /localhost:3000/admin/dashboard    - Admin dashboard (auth required)
 router.get("/dashboard", isAuthenticated, dashboard);
 
 module.exports = router;

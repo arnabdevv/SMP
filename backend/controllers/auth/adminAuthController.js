@@ -46,7 +46,9 @@ const loginAdmin = async (req, res) => {
     if (result) {
       const token = generateToken(user);
       res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
-      return res.status(200).json({ message: "Login Successful" });
+      return res
+        .status(200)
+        .json({ message: "Login Successful", role: user.role });
     } else {
       return res
         .status(400)

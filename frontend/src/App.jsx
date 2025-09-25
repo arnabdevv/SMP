@@ -1,3 +1,6 @@
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,7 +30,7 @@ function Router() {
         </ProtectedRoute>
       </Route>
 
-      <Route path="/teacher-dashboard">
+      <Route path="/teacher">
         <ProtectedRoute role="teacher">
           <TeacherDashboard />
         </ProtectedRoute>
@@ -82,12 +85,14 @@ function Router() {
 
 function App() {
   return (
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Router />
-      </AuthProvider>
-    </TooltipProvider>
+    <BrowserRouter>
+      <TooltipProvider>
+        <AuthProvider>
+          <Toaster />
+          <Router />
+        </AuthProvider>
+      </TooltipProvider>
+    </BrowserRouter>
   );
 }
 
