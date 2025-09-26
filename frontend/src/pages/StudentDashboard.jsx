@@ -64,7 +64,7 @@ const StudentDashboard = () => {
   }, []);
 
   if (loading) return <p>Loading dashboard...</p>;
-  console.log(userData);
+  // console.log(userData);
 
   const getInitials = (name) => {
     if (!name) return "ST";
@@ -136,7 +136,7 @@ const StudentDashboard = () => {
                       className="text-sm text-foreground"
                       data-testid="student-class"
                     >
-                      {userData.className}
+                      {userData.classRef.name}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-border">
@@ -147,7 +147,7 @@ const StudentDashboard = () => {
                       className="text-sm text-foreground"
                       data-testid="student-batch"
                     >
-                      {userData.batchName}
+                      {userData.batchRef.name}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-border">
@@ -158,7 +158,9 @@ const StudentDashboard = () => {
                       className="text-sm text-foreground"
                       data-testid="student-batch"
                     >
-                      {userData.session}
+                      {userData.session
+                        ? `${userData.session}`
+                        : "Not Provided"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-border">
@@ -180,7 +182,7 @@ const StudentDashboard = () => {
                       className="text-sm text-foreground"
                       data-testid="student-phone"
                     >
-                      {userData.personalPhone}
+                      {userData.phoneNumber}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-border">
@@ -191,7 +193,7 @@ const StudentDashboard = () => {
                       className="text-sm text-foreground"
                       data-testid="student-phone"
                     >
-                      {userData.personalPhone}
+                      {userData.parentPhoneNumber}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">

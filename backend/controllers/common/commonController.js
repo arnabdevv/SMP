@@ -17,7 +17,9 @@ const dashboard = async (req, res) => {
     } else if (user.role === "student") {
       userData = await studentModel
         .findOne({ _id: user.id })
-        .select("-password");
+        .select("-password")
+        .populate("classRef", "name -_id") // only get name of class
+        .populate("batchRef", "name -_id"); // only get name of batch
     } else {
       return res.status(400).json({ message: "Invalid Role" });
     }

@@ -24,56 +24,56 @@ function Router() {
       <Route path="/" component={Login} />
       <Route path="/login" component={Login} />
 
-      <Route path="/admin">
-        <ProtectedRoute role="admin">
+      <Route path="/admin-dashboard">
+        <ProtectedRoute allowedRoles={["admin"]}>
           <AdminDashboard />
         </ProtectedRoute>
       </Route>
 
-      <Route path="/teacher">
-        <ProtectedRoute role="teacher">
+      <Route path="/teacher-dashboard">
+        <ProtectedRoute allowedRoles={["teacher"]}>
           <TeacherDashboard />
         </ProtectedRoute>
       </Route>
 
       <Route path="/teacher/students">
-        <ProtectedRoute role="teacher">
+        <ProtectedRoute allowedRoles={["teacher"]}>
           <TeacherStudentManagement />
         </ProtectedRoute>
       </Route>
 
       <Route path="/teacher/exams">
-        <ProtectedRoute role="teacher">
+        <ProtectedRoute allowedRoles={["teacher"]}>
           <TeacherExamManagement />
         </ProtectedRoute>
       </Route>
 
-      <Route path="/student">
-        <ProtectedRoute role="student">
+      <Route path="/student-dashboard">
+        <ProtectedRoute allowedRoles={["student"]}>
           <StudentDashboard />
         </ProtectedRoute>
       </Route>
 
       <Route path="/admin/teachers">
-        <ProtectedRoute role="admin">
+        <ProtectedRoute allowedRoles={["admin"]}>
           <ManageTeachers />
         </ProtectedRoute>
       </Route>
 
       <Route path="/admin/classes">
-        <ProtectedRoute role="admin">
+        <ProtectedRoute allowedRoles={["admin"]}>
           <ManageClasses />
         </ProtectedRoute>
       </Route>
 
       <Route path="/admin/batches">
-        <ProtectedRoute role="admin">
+        <ProtectedRoute allowedRoles={["admin"]}>
           <ManageBatches />
         </ProtectedRoute>
       </Route>
 
       <Route path="/admin/students">
-        <ProtectedRoute role="admin">
+        <ProtectedRoute allowedRoles={["admin"]}>
           <ManageStudents />
         </ProtectedRoute>
       </Route>

@@ -22,7 +22,7 @@ const Login = () => {
 
     try {
       await login(email, password, selectedRole);
-      navigate(`/${selectedRole}`);
+      navigate(`/${selectedRole}-dashboard`);
     } catch (err) {
       console.error("Login error:", err);
     }

@@ -25,6 +25,6 @@ router.post("/login", loginAdmin);
 router.get("/logout", logoutAdmin);
 
 // GET   /localhost:3000/admin/dashboard    - Admin dashboard (auth required)
-router.get("/dashboard", isAuthenticated, dashboard);
+router.get("/dashboard", isAuthenticated, authorizeRole("admin"), dashboard);
 
 module.exports = router;

@@ -43,7 +43,7 @@ router.post(
 // POST  /api/student/logout          - Logout a student
 router.get("/logout", logoutStudent);
 
-router.get("/dashboard", isAuthenticated, dashboard);
+router.get("/dashboard", isAuthenticated, authorizeRole("student"), dashboard);
 
 // GET  /api/student/list - Get students by class and/or batch (admin/teacher only)
 router.get(
