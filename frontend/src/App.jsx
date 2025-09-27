@@ -24,7 +24,7 @@ function Router() {
       <Route path="/" component={Login} />
       <Route path="/login" component={Login} />
 
-      <Route path="/admin-dashboard">
+      <Route path="/admin">
         <ProtectedRoute allowedRoles={["admin"]}>
           <AdminDashboard />
         </ProtectedRoute>

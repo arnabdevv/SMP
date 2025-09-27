@@ -80,7 +80,16 @@ const loginStudent = async (req, res) => {
     if (result) {
       const token = generateToken(student);
       res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
-      res.status(200).json({ message: "Login Successful" });
+      res
+        .status(200)
+        .json({
+          message: "Login Successful",
+          user: {
+            fullName: student.fullName,
+            email: student.email,
+            role: student.role,
+          },
+        });
     } else {
       res.status(400).json({ message: "Email or Password Incorrect" });
     }

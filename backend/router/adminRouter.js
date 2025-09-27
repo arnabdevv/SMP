@@ -8,6 +8,7 @@ const {
   logoutAdmin,
 } = require("../controllers/auth/adminAuthController");
 const { isAuthenticated } = require("../middleware/authMiddleware");
+const { authorizeRole } = require("../middleware/roleMiddleware");
 const { dashboard } = require("../controllers/common/commonController");
 
 // GET   /localhost:3000/admin/             - Test route ("Hey Admin")

@@ -16,42 +16,66 @@ const roleRouteMap = {
 };
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (user?.role) {
+    const getDefaultPath = (role) => {
+      switch (role) {
+        case "admin":
+          return "/admin";
+        case "teacher":
+          return "/teacher-dashboard";
+        case "student":
+          return "/student-dashboard";
+        default:
+          return "/login";
+      }
+    };
+
+    const checkAccess = () => {
+      // Wait for auth to be checked
+      if (loading) return;
+
+      // Handle non-authenticated users
+      if (!user?.role) {
+        if (location !== "/login" && location !== "/") {
+          toast({
+            title: "Authentication Required",
+            description: "Please log in to continue.",
+            variant: "destructive",
+          });
+          setLocation("/login");
+        }
+        return;
+      }
+
+      // Check role-based access
       const hasPermission = allowedRoles.includes(user.role);
-      const isAccessingOwnRole = roleRouteMap[user.role]?.some((route) =>
+      const userRoutes = roleRouteMap[user.role] || [];
+      const isAccessingOwnRole = userRoutes.some((route) =>
         location.startsWith(route)
       );
-
       if (!hasPermission || !isAccessingOwnRole) {
-        // Show toast notification
         toast({
           title: "Access Denied",
           description: "You don't have permission to access this page.",
           variant: "destructive",
         });
 
-        // Redirect to user's own dashboard
-        const redirectPath =
-          user.role === "admin"
-            ? "/admin-dashboard"
-            : user.role === "teacher"
-            ? "/teacher-dashboard"
-            : "/student-dashboard";
-
-        if (location !== redirectPath) {
-          setLocation(redirectPath);
+        const defaultPath = userRoutes[0];
+        if (defaultPath && location !== defaultPath) {
+          setLocation(defaultPath);
+        } else {
+          // Fallback to login if no valid route found
+          setLocation("/login");
         }
       }
-    } else if (location !== "/login" && location !== "/") {
-      // If no user and not on login page, redirect to login
-      setLocation("/login");
-    }
-  }, [location, user?.role, setLocation, toast, allowedRoles]);
+    };
+
+    checkAccess();
+  }, [location, user?.role, loading, setLocation, toast, allowedRoles]);
 
   return children;
 };

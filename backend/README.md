@@ -1,4 +1,67 @@
-# Backend Documentation
+# School Management Platform - Backend
+
+## Overview
+
+The backend of the School Management Platform provides a secure, role-based API system using Node.js, Express, and MongoDB. It implements comprehensive authentication and authorization mechanisms.
+
+## Features
+
+### Authentication
+- Role-based authentication (Admin/Teacher/Student)
+- JWT token implementation
+- Secure password hashing
+- Session management with cookies
+
+### Authorization
+- Role-based middleware protection
+- Route-specific access control
+- Token verification
+- Role verification for API endpoints
+
+### API Features
+- User Management
+  - Admin registration and management
+  - Teacher registration and management
+  - Student registration and management
+  - Bulk student registration
+- Academic Management
+  - Class management
+  - Batch management
+  - Assignment handling
+- Dashboard Data
+  - Role-specific dashboard data
+  - Statistics and analytics
+
+## Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Set up environment variables in `.env`:
+   ```env
+   PORT=3000
+   MONGO_URI=your_mongodb_uri
+   JWT_SECRET=your_jwt_secret
+   ```
+4. Start the server:
+   ```bash
+   npm start
+   ```
+
+## Security Implementations
+
+- JWT for authentication
+- Role-based access control
+- Password hashing
+- Protected routes
+- Input validation
+- Error handling middleware
+
+## API Documentation
+
+Detailed API documentation can be found in ROUTES.md
 
 This document provides a comprehensive overview of the backend for the School Management Platform. It includes details on setting up the environment, API endpoints, data models, and authentication.
 

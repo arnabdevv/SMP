@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { GraduationCap, Settings, BookOpen, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [selectedRole, setSelectedRole] = useState("admin");
@@ -17,14 +18,22 @@ const Login = () => {
 
   const { login, error } = useAuth();
 
+  const { toast } = useToast();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       await login(email, password, selectedRole);
-      navigate(`/${selectedRole}-dashboard`);
+      const dashboardPath = selectedRole === 'admin' ? '/admin' : `/${selectedRole}-dashboard`;
+      navigate(dashboardPath);
     } catch (err) {
-      console.error("Login error:", err);
+      const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
+      toast({
+        title: "Login Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 

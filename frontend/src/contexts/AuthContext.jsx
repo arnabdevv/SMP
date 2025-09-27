@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -14,11 +14,28 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
-
-  const [user, setUser] = useState({});
-
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Load user from localStorage on app start
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser && parsedUser.role) {
+          setUser(parsedUser);
+          // Verify token validity here if needed
+        } else {
+          localStorage.removeItem("user");
+        }
+      } catch (e) {
+        localStorage.removeItem("user");
+      }
+    }
+    setLoading(false);
+  }, []);
 
   const login = async (email, password, role) => {
     setLoading(true);
@@ -29,50 +46,45 @@ export const AuthProvider = ({ children }) => {
       const res = await axios.post(
         endpoint,
         { email, password },
-        { withCredentials: true } // allow cookies if backend sets JWT
+        { withCredentials: true }
       );
 
-      if (res.data.token) {
-        localStorage.setItem("token", res.data.token);
-      }
+      // Store user with role even if backend doesn't send full user data
+      const userData = {
+        ...(res.data.user || {}),
+        role: role, // Ensure role is always set
+      };
 
-      // Only store the role from login response
-      setUser({
-        role: role
-      });
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData));
 
       return res.data;
     } catch (err) {
-      const errorMessage = err.response
-        ? err.response.data.error || err.response.data.message
-        : "Network error. Check if backend is running.";
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Network error. Please check your connection.";
       setError(errorMessage);
       throw err;
     } finally {
       setLoading(false);
     }
   };
-  // console.log(user);
 
   const logout = async () => {
     setLoading(true);
     try {
-      // Even if we don't have a role, try to logout with default role
-      const role = user?.role || 'admin';
-      
+      const role = user?.role || "admin";
       await axios.get(`http://localhost:3000/${role}/logout`, {
         withCredentials: true,
       });
-
-      setUser(null); // clear user state
-      navigate("/"); // redirect to login page
     } catch (err) {
-      console.error('Logout error:', err);
-      // Even if the server call fails, we still want to clear local state
-      setUser(null);
-      navigate("/");
+      console.error("Logout error:", err);
     } finally {
+      setUser(null);
+      localStorage.removeItem("user");
       setLoading(false);
+      navigate("/login");
     }
   };
 
