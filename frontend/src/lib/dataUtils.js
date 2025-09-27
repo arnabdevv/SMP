@@ -75,8 +75,8 @@ export const calculateTeacherStats = (teacher, classes, batches, students) => {
 export const calculateStudentFeesStats = (fees) => {
   const months = Object.keys(fees);
   const paidMonths = months.filter((month) => fees[month] === "paid");
-  const dueMonths = months.filter((month) => fees[month] === "due");
-  const monthlyFee = 1500; // Assuming monthly fee is 1500
+  const dueMonths = months.filter((month) => fees[month] === "unpaid");
+  const monthlyFee = 300; // Assuming monthly fee is 1500
 
   return {
     paidMonths,

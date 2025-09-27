@@ -39,18 +39,8 @@ const studentSchema = mongoose.Schema({
     type: String,
   },
   fees: {
-    january: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
-    february: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
-    march: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
-    april: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
-    may: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
-    june: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
-    july: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
-    august: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
-    september: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
-    october: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
-    november: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
-    december: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Fees",
   },
   marks: [
     {
@@ -65,4 +55,29 @@ const studentSchema = mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Student", studentSchema);
+const feesSchema = mongoose.Schema({
+  stdId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Student",
+    required: true,
+  },
+  fees: {
+    january: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+    february: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+    march: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+    april: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+    may: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+    june: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+    july: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+    august: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+    september: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+    october: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+    november: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+    december: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
+  },
+});
+
+module.exports = {
+  Student: mongoose.model("Student", studentSchema),
+  Fees: mongoose.model("Fees", feesSchema),
+};

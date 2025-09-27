@@ -76,7 +76,7 @@ const StudentDashboard = () => {
   };
 
   const feesStats = calculateStudentFeesStats(userData.fees);
-  const monthlyFee = 1500; // Assuming fixed monthly fee
+  const monthlyFee = 300; // Assuming fixed monthly fee
 
   return (
     <div className="min-h-screen bg-background">

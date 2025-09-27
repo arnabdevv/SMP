@@ -2,11 +2,12 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const debug = require("debug")("development:app");
 
-const studentModel = require("../../models/studentModel");
 const batchModel = require("../../models/batchModel");
 const generateToken = require("../../utils/generateToken");
 
 //Register Student
+const { Student, Fees } = require("../../models/studentModel"); // updated export
+
 const registerStudent = async (req, res) => {
   let {
     fullName,
@@ -17,6 +18,7 @@ const registerStudent = async (req, res) => {
     classId,
     batchId,
   } = req.body;
+
   try {
     if (
       !fullName ||
@@ -27,18 +29,18 @@ const registerStudent = async (req, res) => {
       !classId ||
       !batchId
     ) {
-      return res.status(400).json({ message: "All fields are require" });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    const existedStd = await studentModel.findOne({ email, fullName });
+    const existedStd = await Student.findOne({ email });
     if (existedStd) {
-      return res.status(400).json({ message: "Student already existed" });
+      return res.status(400).json({ message: "Student already exists" });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newStd = await studentModel.create({
+    const newStd = await Student.create({
       fullName,
       email,
       phoneNumber,
@@ -48,17 +50,35 @@ const registerStudent = async (req, res) => {
       batchRef: batchId,
     });
 
+    // Now create Fees for this student
+    const feesRecord = await Fees.create({
+      stdId: newStd._id,
+      fees: {},
+    });
+
+    // Link fees record to student
+    newStd.fees = feesRecord._id;
+    await newStd.save();
+
     const token = generateToken(newStd);
     res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
 
-    const batch = await batchModel.findOne({ _id: batchId });
+    const batch = await batchModel.findById(batchId);
     batch.students.push(newStd._id);
     await batch.save();
 
-    res.status(200).json({ newStd });
+    // Return sanitized response
+    res.status(200).json({
+      message: "Student registered successfully",
+      user: {
+        fullName: newStd.fullName,
+        email: newStd.email,
+        role: newStd.role,
+      },
+    });
   } catch (err) {
-    res.status(500).json({ message: "Internal Server Problem" });
-    debug(err);
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -80,16 +100,14 @@ const loginStudent = async (req, res) => {
     if (result) {
       const token = generateToken(student);
       res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
-      res
-        .status(200)
-        .json({
-          message: "Login Successful",
-          user: {
-            fullName: student.fullName,
-            email: student.email,
-            role: student.role,
-          },
-        });
+      res.status(200).json({
+        message: "Login Successful",
+        user: {
+          fullName: student.fullName,
+          email: student.email,
+          role: student.role,
+        },
+      });
     } else {
       res.status(400).json({ message: "Email or Password Incorrect" });
     }
@@ -109,11 +127,11 @@ const registerStudentInBulk = async (req, res) => {
     }
 
     const batch = await batchModel.findById(batchId);
-
     if (!batch) {
       return res.status(404).json({ message: "Batch not found" });
     }
 
+    // Validate all student entries
     const invalid = students.filter(
       (s) =>
         !String(s.fullName || "").trim() ||
@@ -132,6 +150,7 @@ const registerStudentInBulk = async (req, res) => {
     const studentsData = await Promise.all(
       students.map(async (s) => {
         const hashedPassword = await bcrypt.hash(s.password, 10);
+
         return {
           fullName: s.fullName.trim(),
           email: s.email.trim(),
@@ -144,14 +163,40 @@ const registerStudentInBulk = async (req, res) => {
       })
     );
 
-    const bulkRegistration = await studentModel.insertMany(studentsData);
+    // Insert students
+    const bulkRegistration = await Student.insertMany(studentsData);
 
+    // Create fees records for each student
+    const feesPromises = bulkRegistration.map((student) =>
+      Fees.create({
+        stdId: student._id,
+        fees: {},
+      })
+    );
+
+    const feesRecords = await Promise.all(feesPromises);
+
+    // Link fees to students
+    const updateStudents = bulkRegistration.map((student, index) => {
+      student.fees = feesRecords[index]._id;
+      return student.save();
+    });
+
+    await Promise.all(updateStudents);
+
+    // Update batch with new students
     const studentIds = bulkRegistration.map((student) => student._id);
-
     batch.students.push(...studentIds);
     await batch.save();
 
-    res.status(200).json({ bulkRegistration });
+    res.status(200).json({
+      message: "Bulk registration successful",
+      students: bulkRegistration.map((student) => ({
+        fullName: student.fullName,
+        email: student.email,
+        role: student.role,
+      })),
+    });
   } catch (err) {
     console.error(err);
     res
