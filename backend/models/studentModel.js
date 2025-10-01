@@ -61,7 +61,7 @@ const feesSchema = mongoose.Schema({
     ref: "Student",
     required: true,
   },
-  fees: {
+  monthlyFees: {
     january: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
     february: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },
     march: { type: String, enum: ["paid", "unpaid"], default: "unpaid" },

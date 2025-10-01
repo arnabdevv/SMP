@@ -20,7 +20,9 @@ const Navbar = ({ userData }) => {
           <div className="flex items-center space-x-4">
             <span className="text-sm text-muted-foreground">
               Welcome,{" "}
-              <span className="font-medium">{userData?.fullName || "User"}</span>
+              <span className="font-medium">
+                {userData?.fullName || "User"}
+              </span>
             </span>
             <Button
               variant="ghost"

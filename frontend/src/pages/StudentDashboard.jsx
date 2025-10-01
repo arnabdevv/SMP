@@ -60,8 +60,8 @@ const StudentDashboard = () => {
     };
 
     fetchDashboard();
-    // console.log(userData);
   }, []);
+  // console.log(userData);
 
   if (loading) return <p>Loading dashboard...</p>;
   // console.log(userData);
@@ -75,12 +75,12 @@ const StudentDashboard = () => {
       .toUpperCase();
   };
 
-  const feesStats = calculateStudentFeesStats(userData.fees);
+  const feesStats = calculateStudentFeesStats(userData.fees.monthlyFees);
   const monthlyFee = 300; // Assuming fixed monthly fee
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar userData={userData} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Dashboard Header */}
@@ -286,7 +286,7 @@ const StudentDashboard = () => {
                     </h3>
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {Object.entries(userData.fees).map(
+                        {Object.entries(userData.fees.monthlyFees).map(
                           ([month, status]) => (
                             <div
                               key={month}

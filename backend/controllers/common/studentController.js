@@ -1,4 +1,4 @@
-const studentModel = require("../../models/studentModel");
+const { Student, Fees } = require("../../models/studentModel"); // updated export
 
 // Get students by class and/or batch, with population
 const getStudentsByClassAndBatch = async (req, res) => {
@@ -9,8 +9,7 @@ const getStudentsByClassAndBatch = async (req, res) => {
     if (batchId) filter.batchRef = batchId;
 
     // Populate classRef and batchRef for display
-    const students = await studentModel
-      .find(filter)
+    const students = await Student.find(filter)
       .select("fullName email phoneNumber parentPhoneNumber")
       .populate("classRef", "name")
       .populate("batchRef", "name");

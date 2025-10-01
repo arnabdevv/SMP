@@ -1,7 +1,7 @@
 const debug = require("debug")("development:app");
 
 const adminModel = require("../../models/adminModel");
-const studentModel = require("../../models/studentModel");
+const { Student, Fees } = require("../../models/studentModel");
 const teacherModel = require("../../models/teacherModel");
 
 const dashboard = async (req, res) => {
@@ -15,11 +15,11 @@ const dashboard = async (req, res) => {
         .findOne({ _id: user.id })
         .select("-password");
     } else if (user.role === "student") {
-      userData = await studentModel
-        .findOne({ _id: user.id })
+      userData = await Student.findOne({ _id: user.id })
         .select("-password")
         .populate("classRef", "name -_id") // only get name of class
-        .populate("batchRef", "name -_id"); // only get name of batch
+        .populate("batchRef", "name -_id") // only get name of batch
+        .populate("fees", "monthlyFees -_id");
     } else {
       return res.status(400).json({ message: "Invalid Role" });
     }

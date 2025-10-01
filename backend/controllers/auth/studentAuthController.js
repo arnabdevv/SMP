@@ -90,7 +90,7 @@ const loginStudent = async (req, res) => {
       return res.status(400).json({ message: "All fields are require" });
     }
 
-    const student = await studentModel.findOne({ email });
+    const student = await Student.findOne({ email });
 
     if (!student) {
       return res.status(400).json({ message: "Email or Password Incorrect" });
