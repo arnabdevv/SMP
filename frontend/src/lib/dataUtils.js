@@ -54,18 +54,47 @@ export const getTeacherClassesAndBatches = (teacherId, classes, batches) => {
 };
 
 // Helper function to calculate stats for a teacher
-export const calculateTeacherStats = (teacher, classes, batches, students) => {
-  const { classes: teacherClasses, batches: teacherBatches } =
-    getTeacherClassesAndBatches(teacher.id, classes, batches);
+export const calculateTeacherStats = (teacher) => {
+  if (!teacher || !teacher.classes) {
+    return {
+      totalClasses: 0,
+      totalBatches: 0,
+      totalStudents: 0,
+      totalDues: 0,
+    };
+  }
 
-  const totalStudents = students.length;
-  const totalDues = classes.reduce((total, cls) => {
-    return total + calculateClassDues(students, cls.id);
+  const totalClasses = teacher.classes.length;
+
+  const totalBatches = teacher.classes.reduce(
+    (count, cls) => count + (cls.batches ? cls.batches.length : 0),
+    0
+  );
+
+  const totalStudents = teacher.classes.reduce((count, cls) => {
+    return (
+      count +
+      cls.batches.reduce(
+        (batchCount, batch) => batchCount + (batch.studentCount || 0),
+        0
+      )
+    );
   }, 0);
 
+  // ✅ Calculate total dues from teacher.feeData
+  let totalDues = 0;
+  if (teacher.feeData) {
+    for (const className in teacher.feeData) {
+      const classBatches = teacher.feeData[className];
+      for (const batchName in classBatches) {
+        totalDues += classBatches[batchName].totalDue || 0;
+      }
+    }
+  }
+
   return {
-    totalClasses: teacherClasses.length,
-    totalBatches: teacherBatches.length,
+    totalClasses,
+    totalBatches,
     totalStudents,
     totalDues,
   };

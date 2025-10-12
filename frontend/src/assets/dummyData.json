@@ -1,25 +1,4 @@
 {
-  "admins": [
-    {
-      "id": "admin001",
-      "name": "Super Admin",
-      "role": "admin"
-    }
-  ],
-  "teachers": [
-    {
-      "id": "teacher001",
-      "name": "Mr. Rakesh Sharma",
-      "subject": "Mathematics",
-      "role": "teacher"
-    },
-    {
-      "id": "teacher002",
-      "name": "Ms. Ananya Das",
-      "subject": "English",
-      "role": "teacher"
-    }
-  ],
   "classes": [
     {
       "id": "class10",

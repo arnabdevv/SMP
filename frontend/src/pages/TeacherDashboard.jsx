@@ -13,7 +13,6 @@ import {
 } from "../lib/dataUtils";
 
 // Get current teacher data (using first teacher for demo)
-const classes = dummyData.classes;
 const batches = dummyData.batches;
 const students = dummyData.students;
 
@@ -44,11 +43,10 @@ const TeacherDashboard = () => {
     };
 
     fetchDashboard();
-    // console.log(userData);
   }, []);
 
   if (loading) return <p>Loading dashboard...</p>;
-  console.log(userData);
+  // console.log(userData);
 
   const getInitials = (name) => {
     if (!name) return "T";
@@ -60,12 +58,9 @@ const TeacherDashboard = () => {
   };
 
   // Remove Navbar since we have sidebar now
-  const teacherStats = calculateTeacherStats(
-    userData,
-    classes,
-    batches,
-    students
-  );
+  const teacherStats = calculateTeacherStats(userData);
+  const classes = userData.classes;
+  const feeData = userData.feeData;
 
   return (
     <div className="min-h-screen bg-background">
@@ -149,28 +144,28 @@ const TeacherDashboard = () => {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 gap-6">
-                  {classes.map((cls) => (
-                    <div key={cls.id} className="space-y-4">
+                  {classes.map((cls, classIndex) => (
+                    <div key={classIndex} className="space-y-4">
                       <h3 className="font-medium text-lg text-foreground">
-                        {cls.name}
+                        {cls.className}
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {cls.batches.map((batchId) => {
-                          const batch = batches.find((b) => b.id === batchId);
-                          const batchStudents = getStudentsInBatch(
-                            students,
-                            batchId
-                          );
-                          const batchDues = calculateBatchDues(
-                            students,
-                            batchId
-                          );
+                        {cls.batches.map((batch, batchIndex) => {
+                          const batchStudents = batch.studentCount || 0;
+
+                          // Get the dues data for this class and batch
+                          const batchFeeData =
+                            feeData?.[cls.className]?.[batch.batchName];
+
+                          const batchUnpaidMonths =
+                            batchFeeData?.unpaidMonths || 0;
+                          const batchDues = batchFeeData?.totalDue || 0;
 
                           return (
-                            <Card key={batchId}>
+                            <Card key={batchIndex}>
                               <CardContent className="p-4">
                                 <h4 className="font-medium mb-4">
-                                  Batch {batch?.name}
+                                  Batch {batch.batchName}
                                 </h4>
                                 <div className="space-y-2">
                                   <div className="flex justify-between items-center">
@@ -178,15 +173,25 @@ const TeacherDashboard = () => {
                                       Total Students
                                     </span>
                                     <span className="text-sm font-medium">
-                                      {batchStudents.length}
+                                      {batchStudents}
                                     </span>
                                   </div>
+
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm text-muted-foreground">
+                                      Unpaid Months
+                                    </span>
+                                    <span className="text-sm font-medium text-orange-500">
+                                      {batchUnpaidMonths}
+                                    </span>
+                                  </div>
+
                                   <div className="flex justify-between items-center">
                                     <span className="text-sm text-muted-foreground">
                                       Total Dues
                                     </span>
                                     <span className="text-sm font-medium text-red-500">
-                                      ₹{batchDues}
+                                      ₹{batchDues.toLocaleString("en-IN")}
                                     </span>
                                   </div>
                                 </div>

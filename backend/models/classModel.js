@@ -6,6 +6,10 @@ const classSchema = mongoose.Schema({
     required: true,
     unique: true,
   },
+  feeAmount: {
+    type: Number,
+    required: true,
+  },
   batches: [
     {
       type: mongoose.Schema.Types.ObjectId,

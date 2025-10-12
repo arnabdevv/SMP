@@ -13,7 +13,6 @@ router.get("/", (req, res) => {
 });
 
 // GET   /api/class/all      - Get all classes with populated batches(id & name)
-const classModel = require("../models/classModel");
 router.get("/all", fetchClasses);
 
 // POST  /api/class/create   - Create a new class

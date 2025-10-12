@@ -9,6 +9,8 @@ router.get("/", (req, res) => {
   res.send("Batch Router");
 });
 
+// router.get("/getSummeryFeeData", getSummarizeFeeData);
+
 // POST  /api/batch/create   - Create a new batch
 router.post("/create", createBatch);
 
