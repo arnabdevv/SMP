@@ -1,6 +1,7 @@
 const debug = require("debug")("development:app");
 
 const classModel = require("../../models/classModel");
+const batchModel = require("../../models/batchModel");
 
 //Create class
 const createClass = async (req, res) => {
@@ -28,7 +29,26 @@ const createClass = async (req, res) => {
 const fetchClasses = async (req, res) => {
   try {
     const classes = await classModel.find({}).populate("batches", "_id name");
-    res.json({ classes });
+    // For each batch, get count via aggregation
+    const classesWithCounts = await Promise.all(
+      classes.map(async (cls) => {
+        const batchCounts = await Promise.all(
+          cls.batches.map(async (batch) => {
+            const result = await batchModel.aggregate([
+              { $match: { _id: batch._id } },
+              { $project: { count: { $size: "$students" } } },
+            ]);
+            const studentCount = result.length ? result[0].count : 0;
+            return { ...batch.toObject(), studentCount };
+          })
+        );
+
+        return { ...cls.toObject(), batches: batchCounts };
+      })
+    );
+
+    res.json({ classes: classesWithCounts });
+    // res.json({ classes });
   } catch (err) {
     res
       .status(500)

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import TeacherSidebar from "@/components/TeacherSidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,29 +20,175 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import dummyData from "@/assets/dummyData.json";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card } from "@/components/ui/card";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Users,
+  BookOpen,
+  GraduationCap,
+} from "lucide-react";
 
 const StudentManagement = () => {
-  const [selectedClass, setSelectedClass] = useState("all");
-  const [selectedBatch, setSelectedBatch] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [classData, setClassData] = useState([]);
+  const [error, setError] = useState("");
+  const [selectedClass, setSelectedClass] = useState(undefined);
+  const [selectedBatch, setSelectedBatch] = useState(undefined);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
-
-  // Filter students based on selected class and batch
-  const filteredStudents = dummyData.students.filter((student) => {
-    if (selectedClass !== "all" && student.classId !== selectedClass)
-      return false;
-    if (selectedBatch !== "all" && student.batchId !== selectedBatch)
-      return false;
-    return true;
+  const [showStudents, setShowStudents] = useState(false);
+  const [students, setStudents] = useState([]);
+  const [addStudentForm, setAddStudentForm] = useState({
+    fullName: "",
+    email: "",
+    phoneNumber: "",
+    parentPhoneNumber: "",
+    classId: undefined,
+    batchId: undefined,
   });
 
-  const handleAddStudent = (formData) => {
-    // Handle adding new student - in real app this would be an API call
-    console.log("Adding student:", formData);
-    setIsAddDialogOpen(false);
+  useEffect(() => {
+    const fetchClassData = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3000/class/all`, {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setClassData(res.data.classes || []);
+      } catch (err) {
+        if (err.response) {
+          setError(err.response.data.error || err.response.data.message);
+        } else {
+          setError("Network error. Check backend connection.");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClassData();
+  }, []);
+
+  // Fetch students when class and batch are selected
+  useEffect(() => {
+    const fetchStudents = async () => {
+      if (!selectedClass || !selectedBatch) {
+        setStudents([]);
+        return;
+      }
+
+      try {
+        const res = await axios.get(`http://localhost:3000/student/list`, {
+          params: {
+            classId: selectedClass,
+            batchId: selectedBatch,
+          },
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setStudents(res.data.students || []);
+      } catch (err) {
+        console.error("Error fetching students:", err);
+        setStudents([]);
+      }
+    };
+
+    if (showStudents && selectedClass && selectedBatch) {
+      fetchStudents();
+    }
+  }, [showStudents, selectedClass, selectedBatch]);
+
+  // Get available batches for selected class
+  const availableBatches = selectedClass
+    ? classData.find((cls) => cls._id === selectedClass)?.batches || []
+    : [];
+
+  // Filter students based on selected class and batch (already filtered by API)
+  const filteredStudents = students;
+
+  // Calculate summary statistics with real counts
+  const classStats = classData.map((cls) => {
+    const totalStudents =
+      cls.batches?.reduce((sum, batch) => sum + (batch.studentCount || 0), 0) ||
+      0;
+
+    const totalBatches = cls.batches?.length || 0;
+
+    return {
+      ...cls,
+      studentCount: totalStudents,
+      batchCount: totalBatches,
+    };
+  });
+
+  const handleAddStudent = async () => {
+    try {
+      // Validate required fields
+      const requiredFields = [
+        "fullName",
+        "email",
+        "phoneNumber",
+        "parentPhoneNumber",
+        "password",
+        "classId",
+        "batchId",
+      ];
+
+      const missingFields = requiredFields.filter(
+        (field) => !addStudentForm[field]
+      );
+
+      if (missingFields.length > 0) {
+        console.error("Missing required fields:", missingFields);
+        return;
+      }
+
+      const response = await axios.post(
+        "http://localhost:3000/student/register",
+        addStudentForm,
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      // If successful, refresh the students list if the current class/batch matches
+      if (
+        selectedClass === addStudentForm.classId &&
+        selectedBatch === addStudentForm.batchId
+      ) {
+        setStudents((prev) => [...prev, response.data]);
+      }
+
+      // Reset form and close dialog
+      setAddStudentForm({
+        fullName: "",
+        email: "",
+        phoneNumber: "",
+        parentPhoneNumber: "",
+        password: "",
+        classId: undefined,
+        batchId: undefined,
+      });
+      setIsAddDialogOpen(false);
+    } catch (err) {
+      console.error("Error adding student:", err.response?.data || err.message);
+    }
   };
 
   const handleEditStudent = (student) => {
@@ -73,74 +220,160 @@ const StudentManagement = () => {
             </Button>
           </div>
 
-          <div className="flex gap-4 mb-6">
-            <div className="w-48">
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <option value="all">All Classes</option>
-                {dummyData.classes.map((cls) => (
-                  <option key={cls.id} value={cls.id}>
-                    {cls.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div className="w-48">
-              <Select value={selectedBatch} onValueChange={setSelectedBatch}>
-                <option value="all">All Batches</option>
-                {dummyData.batches.map((batch) => (
-                  <option key={batch.id} value={batch.id}>
-                    {batch.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {classStats.map((stat) => (
+              <Card key={stat.id} className="p-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2">{stat.name}</h3>
+                    <div className="space-y-2">
+                      <div className="flex items-center text-muted-foreground">
+                        <Users className="h-4 w-4 mr-2" />
+                        <span>{stat.studentCount} Students</span>
+                      </div>
+                      <div className="flex items-center text-muted-foreground">
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        <span>{stat.batchCount} Batches</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="h-fit">
+                    Class {stat.name}
+                  </Badge>
+                </div>
+              </Card>
+            ))}
           </div>
 
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Class</TableHead>
-                  <TableHead>Batch</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Parent's Phone</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-medium">
-                      {student.name}
-                    </TableCell>
-                    <TableCell>{student.className}</TableCell>
-                    <TableCell>{student.batchName}</TableCell>
-                    <TableCell>{student.personalPhone}</TableCell>
-                    <TableCell>{student.parentPhone}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEditStudent(student)}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleDeleteStudent(student.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+          {/* Filters */}
+          <Card className="p-6 mb-6">
+            <h2 className="text-lg font-semibold mb-4">Filter Students</h2>
+            <div className="flex gap-4 items-end">
+              <div className="space-y-2 flex-1">
+                <Label htmlFor="class">Select Class</Label>
+                <Select
+                  value={selectedClass}
+                  onValueChange={(value) => {
+                    setSelectedClass(value);
+                    setSelectedBatch("");
+                    setShowStudents(false);
+                  }}
+                >
+                  <SelectTrigger id="class">
+                    <SelectValue placeholder="Choose a class" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {classData.map((cls) => (
+                      <SelectItem
+                        key={cls._id || cls.id}
+                        value={cls._id || cls.id}
+                      >
+                        {cls.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2 flex-1">
+                <Label htmlFor="batch">Select Batch</Label>
+                <Select
+                  value={selectedBatch}
+                  onValueChange={(value) => {
+                    setSelectedBatch(value);
+                    setShowStudents(false);
+                  }}
+                  disabled={!selectedClass}
+                >
+                  <SelectTrigger id="batch">
+                    <SelectValue placeholder="Choose a batch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableBatches.map((batch) => (
+                      <SelectItem
+                        key={batch._id || batch.id}
+                        value={batch._id || batch.id}
+                      >
+                        {batch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                onClick={() => setShowStudents(true)}
+                disabled={!selectedClass || !selectedBatch}
+              >
+                <GraduationCap className="h-4 w-4 mr-2" />
+                Show Students
+              </Button>
+            </div>
+          </Card>
+
+          {showStudents && selectedClass && selectedBatch && (
+            <Card className="border rounded-lg">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Parent's Phone</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {filteredStudents.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8">
+                        <div className="flex flex-col items-center text-muted-foreground">
+                          <Users className="h-8 w-8 mb-2" />
+                          <p>No students found in this batch</p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredStudents.map((student) => (
+                      <TableRow key={student._id || student.id}>
+                        <TableCell className="font-medium">
+                          {student.fullName || student.name}
+                        </TableCell>
+                        <TableCell>{student.email || "N/A"}</TableCell>
+                        <TableCell>
+                          {student.phoneNumber || student.phone || "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          {student.parentPhoneNumber ||
+                            student.parentPhone ||
+                            "N/A"}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditStudent(student)}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() =>
+                                handleDeleteStudent(student._id || student.id)
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </Card>
+          )}
         </div>
 
         {/* Add Student Dialog */}
@@ -151,45 +384,133 @@ const StudentManagement = () => {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Student Name</Label>
-                <Input id="name" placeholder="Enter student name" />
+                <Label htmlFor="fullName">Student Name</Label>
+                <Input
+                  id="fullName"
+                  value={addStudentForm.fullName}
+                  onChange={(e) =>
+                    setAddStudentForm((prev) => ({
+                      ...prev,
+                      fullName: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter student name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={addStudentForm.email}
+                  onChange={(e) =>
+                    setAddStudentForm((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter student email"
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="class">Class</Label>
-                  <Select id="class">
-                    {dummyData.classes.map((cls) => (
-                      <option key={cls.id} value={cls.id}>
-                        {cls.name}
-                      </option>
-                    ))}
+                  <Label htmlFor="dialog-class">Class</Label>
+                  <Select
+                    value={addStudentForm.classId}
+                    onValueChange={(value) => {
+                      setAddStudentForm((prev) => ({
+                        ...prev,
+                        classId: value,
+                        batchId: undefined,
+                      }));
+                    }}
+                  >
+                    <SelectTrigger id="dialog-class">
+                      <SelectValue placeholder="Select a class" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classData.map((cls) => (
+                        <SelectItem
+                          key={cls._id || cls.id}
+                          value={cls._id || cls.id}
+                        >
+                          {cls.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="batch">Batch</Label>
-                  <Select id="batch">
-                    {dummyData.batches.map((batch) => (
-                      <option key={batch.id} value={batch.id}>
-                        {batch.name}
-                      </option>
-                    ))}
+                  <Label htmlFor="dialog-batch">Batch</Label>
+                  <Select
+                    value={addStudentForm.batchId}
+                    onValueChange={(value) =>
+                      setAddStudentForm((prev) => ({
+                        ...prev,
+                        batchId: value,
+                      }))
+                    }
+                    disabled={!addStudentForm.classId}
+                  >
+                    <SelectTrigger id="dialog-batch">
+                      <SelectValue placeholder="Select a batch" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableBatches.map((batch) => (
+                        <SelectItem
+                          key={batch._id || batch.id}
+                          value={batch._id || batch.id}
+                        >
+                          {batch.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Student's Phone</Label>
+                <Label htmlFor="phoneNumber">Student's Phone</Label>
                 <Input
-                  id="phone"
+                  id="phoneNumber"
                   type="tel"
+                  value={addStudentForm.phoneNumber}
+                  onChange={(e) =>
+                    setAddStudentForm((prev) => ({
+                      ...prev,
+                      phoneNumber: e.target.value,
+                    }))
+                  }
                   placeholder="Enter student's phone number"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="parentPhone">Parent's Phone</Label>
+                <Label htmlFor="parentPhoneNumber">Parent's Phone</Label>
                 <Input
-                  id="parentPhone"
+                  id="parentPhoneNumber"
                   type="tel"
+                  value={addStudentForm.parentPhoneNumber}
+                  onChange={(e) =>
+                    setAddStudentForm((prev) => ({
+                      ...prev,
+                      parentPhoneNumber: e.target.value,
+                    }))
+                  }
                   placeholder="Enter parent's phone number"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={addStudentForm.password}
+                  onChange={(e) =>
+                    setAddStudentForm((prev) => ({
+                      ...prev,
+                      password: e.target.value,
+                    }))
+                  }
+                  placeholder="Enter password"
                 />
               </div>
             </div>

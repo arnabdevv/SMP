@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { Link } from "wouter";
 import Navbar from "../components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft, Plus, Edit, Trash2, Users } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const teacherFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -45,74 +47,98 @@ const teacherFormSchema = z.object({
     .optional(),
 });
 
-// Static Data
-const teachers = [
-  {
-    id: "t1",
-    user: {
-      name: "Dr. Evelyn Reed",
-      email: "evelyn.reed@example.com",
-      phone: "555-0103",
-    },
-    subject: "Physics",
-    qualification: "Ph.D. in Physics",
-    experience: 10,
-  },
-  {
-    id: "t2",
-    user: {
-      name: "Mr. Samuel Carter",
-      email: "samuel.carter@example.com",
-      phone: "555-0104",
-    },
-    subject: "Mathematics",
-    qualification: "M.Sc. in Mathematics",
-    experience: 8,
-  },
-  {
-    id: "t3",
-    user: {
-      name: "Ms. Olivia Chen",
-      email: "olivia.chen@example.com",
-      phone: "555-0105",
-    },
-    subject: "Chemistry",
-    qualification: "M.Sc. in Chemistry",
-    experience: 5,
-  },
-];
-
 const ManageTeachers = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
+  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const form = useForm({
-    resolver: zodResolver(teacherFormSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      phone: "",
-      subject: "",
-      qualification: "",
-      experience: 0,
-    },
-  });
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:3000/teacher/getAllTeachers`,
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        setTeachers(res.data.teachers || []);
+      } catch (err) {
+        toast({
+          title: "Error",
+          description: "Failed to load teachers",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const onSubmit = (data) => {
-    console.log("Form submitted (static):", data);
-    setIsCreateDialogOpen(false);
-    setEditingTeacher(null);
-    alert("Action not available in static mode.");
+    fetchTeachers();
+  }, [toast]);
+
+  const onSubmit = async (data) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:3000/teacher/register`,
+        {
+          fullName: data.name,
+          email: data.email,
+          password: data.password,
+          phoneNumber: data.phone,
+          subject: data.subject,
+          qualification: data.qualification,
+          experience: data.experience,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      toast({
+        title: "Success",
+        description: "Teacher registered successfully",
+      });
+
+      // Refresh teachers list
+      const res = await axios.get(
+        `http://localhost:3000/teacher/getAllTeachers`,
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setTeachers(res.data.teachers || []);
+
+      setIsCreateDialogOpen(false);
+      setEditingTeacher(null);
+      form.reset();
+    } catch (err) {
+      toast({
+        title: "Error",
+        description:
+          err.response?.data?.message || "Failed to register teacher",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEdit = (teacher) => {
     setEditingTeacher(teacher);
     form.reset({
-      name: teacher.user?.name || "",
-      email: teacher.user?.email || "",
+      name: teacher.user?.name || teacher.fullName || "",
+      email: teacher.user?.email || teacher.email || "",
       password: "", // Don't prefill password
-      phone: teacher.user?.phone || "",
+      phone: teacher.user?.phone || teacher.phoneNumber || "",
       subject: teacher.subject || "",
       qualification: teacher.qualification || "",
       experience: teacher.experience || 0,
@@ -120,9 +146,12 @@ const ManageTeachers = () => {
   };
 
   const handleDelete = (teacherId) => {
-    alert(
-      `Delete action for teacher ${teacherId} not available in static mode.`
-    );
+    // Delete functionality would need to be implemented in backend
+    toast({
+      title: "Not Available",
+      description: "Delete functionality not yet implemented",
+      variant: "destructive",
+    });
   };
 
   const resetForm = () => {
@@ -380,7 +409,7 @@ const ManageTeachers = () => {
                 </TableHeader>
                 <TableBody>
                   {teachers?.map((teacher, index) => (
-                    <TableRow key={teacher.id}>
+                    <TableRow key={teacher._id || teacher.id}>
                       <TableCell>
                         <div className="flex items-center">
                           <div
@@ -388,29 +417,37 @@ const ManageTeachers = () => {
                               index
                             )} rounded-full flex items-center justify-center text-white font-medium mr-3`}
                           >
-                            {getInitials(teacher.user?.name || "Unknown")}
+                            {getInitials(
+                              teacher.user?.name ||
+                                teacher.fullName ||
+                                "Unknown"
+                            )}
                           </div>
                           <div>
                             <p
                               className="font-medium"
                               data-testid={`teacher-name-${index}`}
                             >
-                              {teacher.user?.name || "Unknown"}
+                              {teacher.user?.name ||
+                                teacher.fullName ||
+                                "Unknown"}
                             </p>
                             <p
                               className="text-sm text-muted-foreground"
                               data-testid={`teacher-phone-${index}`}
                             >
-                              {teacher.user?.phone || "No phone"}
+                              {teacher.user?.phone ||
+                                teacher.phoneNumber ||
+                                "No phone"}
                             </p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell data-testid={`teacher-subject-${index}`}>
-                        {teacher.subject}
+                        {teacher.subject || "N/A"}
                       </TableCell>
                       <TableCell data-testid={`teacher-email-${index}`}>
-                        {teacher.user?.email}
+                        {teacher.user?.email || teacher.email || "N/A"}
                       </TableCell>
                       <TableCell data-testid={`teacher-experience-${index}`}>
                         {teacher.experience
@@ -433,7 +470,9 @@ const ManageTeachers = () => {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDelete(teacher.id)}
+                            onClick={() =>
+                              handleDelete(teacher._id || teacher.id)
+                            }
                             className="text-destructive hover:text-destructive"
                             data-testid={`button-delete-teacher-${index}`}
                           >

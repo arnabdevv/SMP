@@ -15,69 +15,101 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-//Dynamic Data
-
-// Static Data
-const stats = {
-  totalTeachers: 5,
-  totalClasses: 3,
-  totalBatches: 2,
-  totalStudents: 2,
-};
-
-const teachers = [
-  { id: "t1", user: { name: "Dr. Evelyn Reed" }, subject: "Physics" },
-  { id: "t2", user: { name: "Mr. Samuel Carter" }, subject: "Mathematics" },
-];
-
-const classes = [
-  {
-    id: "c1",
-    name: "Class 10A",
-    teacher: { user: { name: "Dr. Evelyn Reed" } },
-  },
-  {
-    id: "c2",
-    name: "Class 10B",
-    teacher: { user: { name: "Mr. Samuel Carter" } },
-  },
-];
-
-const batches = [
-  { id: "b1", name: "2024-2025", academicYear: "2024" },
-  { id: "b2", name: "2023-2024", academicYear: "2023" },
-];
-
-const students = [
-  {
-    id: "s1",
-    user: { name: "Alice Johnson" },
-    studentId: "STU2024001",
-    class: { name: "Class 10A" },
-  },
-  {
-    id: "s2",
-    user: { name: "Bob Williams" },
-    studentId: "STU2024002",
-    class: { name: "Class 10B" },
-  },
-];
-
 const AdminDashboard = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [stats, setStats] = useState({
+    totalTeachers: 0,
+    totalClasses: 0,
+    totalBatches: 0,
+    totalStudents: 0,
+  });
+  const [teachers, setTeachers] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [batches, setBatches] = useState([]);
+  const [students, setStudents] = useState([]);
 
   useEffect(() => {
-    const fetchDashboard = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/admin/dashboard`, {
-          withCredentials: true, // if using cookies for JWT
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // if using localStorage
-          },
-        });
-        setUserData(res.data);
+        // Fetch dashboard data
+        const dashboardRes = await axios.get(
+          `http://localhost:3000/admin/dashboard`,
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        setUserData(dashboardRes.data);
+
+        // Fetch teachers
+        try {
+          const teachersRes = await axios.get(
+            `http://localhost:3000/teacher/getAllTeachers`,
+            {
+              withCredentials: true,
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+          const teachersData = teachersRes.data.teachers || [];
+          setTeachers(teachersData);
+          setStats((prev) => ({ ...prev, totalTeachers: teachersData.length }));
+        } catch (err) {
+          console.error("Error fetching teachers:", err);
+        }
+
+        // Fetch classes
+        try {
+          const classesRes = await axios.get(
+            `http://localhost:3000/class/all`,
+            {
+              withCredentials: true,
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+          const classesData = classesRes.data.classes || [];
+          setClasses(classesData);
+          setStats((prev) => ({ ...prev, totalClasses: classesData.length }));
+
+          // Extract batches from classes
+          const allBatches = [];
+          let totalBatches = 0;
+          classesData.forEach((cls) => {
+            if (cls.batches && Array.isArray(cls.batches)) {
+              allBatches.push(...cls.batches);
+              totalBatches += cls.batches.length;
+            }
+          });
+          setBatches(allBatches);
+          setStats((prev) => ({ ...prev, totalBatches }));
+        } catch (err) {
+          console.error("Error fetching classes:", err);
+        }
+
+        // Fetch students (using student list endpoint)
+        try {
+          const studentsRes = await axios.get(
+            `http://localhost:3000/student/list`,
+            {
+              withCredentials: true,
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+          const studentsData = studentsRes.data.students || [];
+          setStudents(studentsData);
+          setStats((prev) => ({ ...prev, totalStudents: studentsData.length }));
+        } catch (err) {
+          console.error("Error fetching students:", err);
+        }
       } catch (err) {
         if (err.response) {
           setError(err.response.data.error || err.response.data.message);
@@ -89,8 +121,7 @@ const AdminDashboard = () => {
       }
     };
 
-    fetchDashboard();
-    // console.log(userData);
+    fetchDashboardData();
   }, []);
 
   if (loading) return <p>Loading dashboard...</p>;
@@ -143,7 +174,7 @@ const AdminDashboard = () => {
                     className="text-3xl font-semibold text-foreground"
                     data-testid="stat-teachers"
                   >
-                    {stats?.totalTeachers || 0}
+                    {stats.totalTeachers}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -164,7 +195,7 @@ const AdminDashboard = () => {
                     className="text-3xl font-semibold text-foreground"
                     data-testid="stat-classes"
                   >
-                    {stats?.totalClasses || 0}
+                    {stats.totalClasses}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -185,7 +216,7 @@ const AdminDashboard = () => {
                     className="text-3xl font-semibold text-foreground"
                     data-testid="stat-batches"
                   >
-                    {stats?.totalBatches || 0}
+                    {stats.totalBatches}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -206,7 +237,7 @@ const AdminDashboard = () => {
                     className="text-3xl font-semibold text-foreground"
                     data-testid="stat-students"
                   >
-                    {stats?.totalStudents || 0}
+                    {stats.totalStudents}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -238,7 +269,7 @@ const AdminDashboard = () => {
               <div className="space-y-4">
                 {teachers?.slice(0, 2).map((teacher, index) => (
                   <div
-                    key={teacher.id}
+                    key={teacher._id || teacher.id}
                     className="flex items-center justify-between p-4 bg-muted/50 rounded-md"
                   >
                     <div className="flex items-center">
@@ -247,20 +278,22 @@ const AdminDashboard = () => {
                           index
                         )} rounded-full flex items-center justify-center text-white font-medium`}
                       >
-                        {getInitials(teacher.user?.name || "Unknown")}
+                        {getInitials(
+                          teacher.user?.name || teacher.fullName || "Unknown"
+                        )}
                       </div>
                       <div className="ml-3">
                         <p
                           className="font-medium text-foreground"
                           data-testid={`teacher-name-${index}`}
                         >
-                          {teacher.user?.name || "Unknown"}
+                          {teacher.user?.name || teacher.fullName || "Unknown"}
                         </p>
                         <p
                           className="text-sm text-muted-foreground"
                           data-testid={`teacher-subject-${index}`}
                         >
-                          {teacher.subject}
+                          {teacher.subject || "N/A"}
                         </p>
                       </div>
                     </div>
@@ -314,7 +347,7 @@ const AdminDashboard = () => {
               <div className="space-y-4">
                 {classes?.slice(0, 2).map((cls, index) => (
                   <div
-                    key={cls.id}
+                    key={cls._id || cls.id}
                     className="flex items-center justify-between p-4 bg-muted/50 rounded-md"
                   >
                     <div>
@@ -328,7 +361,7 @@ const AdminDashboard = () => {
                         className="text-sm text-muted-foreground"
                         data-testid={`class-teacher-${index}`}
                       >
-                        Teacher: {cls.teacher?.user?.name || "Unassigned"}
+                        Batches: {cls.batches?.length || 0}
                       </p>
                     </div>
                     <div className="flex space-x-2">
@@ -381,7 +414,7 @@ const AdminDashboard = () => {
               <div className="space-y-4">
                 {batches?.slice(0, 2).map((batch, index) => (
                   <div
-                    key={batch.id}
+                    key={batch._id || batch.id}
                     className="flex items-center justify-between p-4 bg-muted/50 rounded-md"
                   >
                     <div>
@@ -395,7 +428,7 @@ const AdminDashboard = () => {
                         className="text-sm text-muted-foreground"
                         data-testid={`batch-year-${index}`}
                       >
-                        Academic Year: {batch.academicYear}
+                        ID: {batch._id || batch.id}
                       </p>
                     </div>
                     <div className="flex space-x-2">
@@ -448,7 +481,7 @@ const AdminDashboard = () => {
               <div className="space-y-4">
                 {students?.slice(0, 2).map((student, index) => (
                   <div
-                    key={student.id}
+                    key={student._id || student.id}
                     className="flex items-center justify-between p-4 bg-muted/50 rounded-md"
                   >
                     <div className="flex items-center">
@@ -457,26 +490,28 @@ const AdminDashboard = () => {
                           index + 2
                         )} rounded-full flex items-center justify-center text-white font-medium`}
                       >
-                        {getInitials(student.user?.name || "Unknown")}
+                        {getInitials(
+                          student.fullName || student.user?.name || "Unknown"
+                        )}
                       </div>
                       <div className="ml-3">
                         <p
                           className="font-medium text-foreground"
                           data-testid={`student-name-${index}`}
                         >
-                          {student.user?.name || "Unknown"}
+                          {student.fullName || student.user?.name || "Unknown"}
                         </p>
                         <p
                           className="text-sm text-muted-foreground"
                           data-testid={`student-class-${index}`}
                         >
-                          {student.class?.name || "No class assigned"}
+                          Class: {student.classRef?.name || "No class assigned"}
                         </p>
                         <p
                           className="text-xs text-muted-foreground"
                           data-testid={`student-id-${index}`}
                         >
-                          ID: {student.studentId}
+                          Email: {student.email || "N/A"}
                         </p>
                       </div>
                     </div>
