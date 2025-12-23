@@ -11,7 +11,7 @@ const getStudentsByClassAndBatch = async (req, res) => {
 
     // Populate classRef and batchRef for display
     const students = await Student.find(filter)
-      .select("fullName email phoneNumber parentPhoneNumber")
+      .select("_id fullName email phoneNumber parentPhoneNumber")
       .populate("classRef", "name")
       .populate("batchRef", "name");
     res.status(200).json({ students });
@@ -19,6 +19,63 @@ const getStudentsByClassAndBatch = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error fetching students", error: err.message });
+  }
+};
+
+// Diagnostic endpoint to check batch consistency
+const getBatchDiagnostics = async (req, res) => {
+  try {
+    const { batchId } = req.query;
+
+    if (!batchId) {
+      return res.status(400).json({ message: "batchId is required" });
+    }
+
+    const batch = await batchModel.findById(batchId).populate([
+      { path: "classRef", select: "name" },
+      { path: "students", select: "_id fullName email classRef batchRef" },
+    ]);
+
+    if (!batch) {
+      return res.status(404).json({ message: "Batch not found" });
+    }
+
+    // Count students in batch.students array
+    const batchStudentsCount = batch.students.length;
+
+    // Count students in database by classRef and batchRef
+    const dbStudentsCount = await Student.countDocuments({
+      classRef: batch.classRef,
+      batchRef: batchId,
+    });
+
+    // Find students in batch array that don't match batchRef or classRef
+    const mismatches = batch.students.filter((student) => {
+      return (
+        student.batchRef.toString() !== batchId ||
+        student.classRef.toString() !== batch.classRef.toString()
+      );
+    });
+
+    res.status(200).json({
+      batchName: batch.name,
+      studentsInBatchArray: batchStudentsCount,
+      studentsInDatabase: dbStudentsCount,
+      mismatches: mismatches.length,
+      mismatchedStudents: mismatches.map((s) => ({
+        id: s._id,
+        name: s.fullName,
+        email: s.email,
+        expectedBatchRef: batchId,
+        actualBatchRef: s.batchRef,
+        expectedClassRef: batch.classRef,
+        actualClassRef: s.classRef,
+      })),
+    });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error fetching diagnostics", error: err.message });
   }
 };
 
@@ -96,4 +153,8 @@ const updateStudentDetails = async (req, res) => {
   }
 };
 
-module.exports = { getStudentsByClassAndBatch, updateStudentDetails };
+module.exports = {
+  getStudentsByClassAndBatch,
+  updateStudentDetails,
+  getBatchDiagnostics,
+};

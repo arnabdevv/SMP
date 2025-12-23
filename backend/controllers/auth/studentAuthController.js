@@ -61,7 +61,7 @@ const registerStudent = async (req, res) => {
     await newStd.save();
 
     const token = generateToken(newStd);
-    res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+    // res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
 
     const batch = await batchModel.findById(batchId);
     batch.students.push(newStd._id);
@@ -211,9 +211,42 @@ const logoutStudent = (req, res) => {
   return res.status(200).json({ message: "Logout Successfully" });
 };
 
+// Delete Student
+const deleteStudent = async (req, res) => {
+  const { studentId } = req.params;
+
+  try {
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Remove student from batch
+    if (student.batchRef) {
+      const batch = await batchModel.findById(student.batchRef);
+      if (batch) {
+        batch.students = batch.students.filter(
+          (id) => id.toString() !== studentId
+        );
+        await batch.save();
+      }
+    }
+
+    // Remove fees record and delete student
+    if (student.fees) await Fees.findByIdAndDelete(student.fees);
+    await Student.findByIdAndDelete(studentId);
+
+    res.status(200).json({ message: "Student deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   registerStudent,
   loginStudent,
   registerStudentInBulk,
   logoutStudent,
+  deleteStudent,
 };

@@ -8,6 +8,7 @@ const {
   registerStudentInBulk,
   loginStudent,
   logoutStudent,
+  deleteStudent,
 } = require("../controllers/auth/studentAuthController");
 const { isAuthenticated } = require("../middleware/authMiddleware");
 const { authorizeRole } = require("../middleware/roleMiddleware");
@@ -15,6 +16,7 @@ const { dashboard } = require("../controllers/common/commonController");
 const {
   getStudentsByClassAndBatch,
   updateStudentDetails,
+  getBatchDiagnostics,
 } = require("../controllers/common/studentController");
 
 // GET   /api/student/                  - Test route ("Hey Student")
@@ -55,6 +57,22 @@ router.get(
   isAuthenticated,
   authorizeRole("admin", "teacher"),
   getStudentsByClassAndBatch
+);
+
+// GET  /api/student/diagnostics - Get batch diagnostics (admin/teacher only)
+router.get(
+  "/diagnostics",
+  isAuthenticated,
+  authorizeRole("admin", "teacher"),
+  getBatchDiagnostics
+);
+
+// DELETE /api/student/:studentId - Delete a student (admin/teacher only)
+router.delete(
+  "/:studentId",
+  isAuthenticated,
+  authorizeRole("admin", "teacher"),
+  deleteStudent
 );
 
 module.exports = router;
