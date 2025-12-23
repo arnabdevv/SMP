@@ -60,7 +60,7 @@ const dashboard = async (req, res) => {
       userData.feeData = report;
     } else if (user.role === "student") {
       userData = await Student.findOne({ _id: user.id })
-        .select("-password -_id")
+        .select("-password ")
         .populate("classRef", "name -_id")
         .populate("batchRef", "name -_id")
         .populate("fees", "monthlyFees -_id");

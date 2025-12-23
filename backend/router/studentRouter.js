@@ -14,6 +14,7 @@ const { authorizeRole } = require("../middleware/roleMiddleware");
 const { dashboard } = require("../controllers/common/commonController");
 const {
   getStudentsByClassAndBatch,
+  updateStudentDetails,
 } = require("../controllers/common/studentController");
 
 // GET   /api/student/                  - Test route ("Hey Student")
@@ -39,6 +40,9 @@ router.post(
   authorizeRole("admin", "teacher"),
   registerStudentInBulk
 );
+
+// POST  /api/student/update/:studentId          - Update a student
+router.post("/update/:studentId", updateStudentDetails);
 
 // POST  /api/student/logout          - Logout a student
 router.get("/logout", logoutStudent);

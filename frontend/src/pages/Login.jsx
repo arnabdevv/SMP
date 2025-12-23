@@ -11,8 +11,8 @@ import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [selectedRole, setSelectedRole] = useState("admin");
-  const [email, setEmail] = useState("admin@example.com");
-  const [password, setPassword] = useState("password");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
 
@@ -25,10 +25,13 @@ const Login = () => {
 
     try {
       await login(email, password, selectedRole);
-      const dashboardPath = selectedRole === 'admin' ? '/admin' : `/${selectedRole}-dashboard`;
+      const dashboardPath =
+        selectedRole === "admin" ? "/admin" : `/${selectedRole}-dashboard`;
       navigate(dashboardPath);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || "Login failed. Please check your credentials.";
+      const errorMessage =
+        err.response?.data?.message ||
+        "Login failed. Please check your credentials.";
       toast({
         title: "Login Error",
         description: errorMessage,
@@ -91,16 +94,16 @@ const Login = () => {
             </div>
 
             {/* Login Form */}
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
                 <div className="relative">
                   <Input
                     type="email"
                     id="email"
+                    placeholder=" "
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="peer pt-6 pb-2"
-                    placeholder=" "
                     required
                     data-testid="input-email"
                   />
@@ -165,6 +168,29 @@ const Login = () => {
                 Sign In
               </Button>
             </form>
+
+            {/* Test Credentials */}
+            <div className="mt-8 p-4 bg-muted/30 rounded-lg border border-border/50">
+              <p className="text-sm font-medium text-muted-foreground mb-2">
+                Test Credentials
+              </p>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <div className="flex items-center justify-between border-b border-border/50 pb-1">
+                    <span className="font-medium">Admin</span>
+                    <span>test1@admin.com / test</span>
+                  </div>
+                  <div className="flex items-center justify-between border-b border-border/50 pb-1">
+                    <span className="font-medium">Teacher</span>
+                    <span>test1@teacher.com / test</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-1">
+                    <span className="font-medium">Student</span>
+                    <span>test1@student.com / test</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
