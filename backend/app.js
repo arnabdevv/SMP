@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const debug = require("debug")("development:app");
+const { appLog } = require("./logger");
 // MongoDB connection
 const db = require("./config/mongooseConnection");
 const path = require("path");
@@ -40,5 +40,5 @@ app.use("/class", classRouter);
 app.use("/batch", batchRouter);
 
 app.listen(3000, () => {
-  debug("Backend Running...");
+  appLog("Backend Running...");
 });
