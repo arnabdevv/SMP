@@ -56,6 +56,15 @@ const ManageClasses = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  const form = useForm({
+    resolver: zodResolver(classFormSchema),
+    defaultValues: {
+      name: "",
+      teacherId: "unassigned",
+      description: "",
+    },
+  });
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -100,20 +109,54 @@ const ManageClasses = () => {
 
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post(
-        `http://localhost:3000/class/create`,
-        { className: data.name },
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+      const payload = {
+        className: data.name,
+        teacherId: data.teacherId === "unassigned" ? null : data.teacherId,
+        description: data.description,
+      };
+
+      const config = {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      };
+
+      if (editingClass) {
+        const currentTeacherId = editingClass.teacher?._id || "unassigned";
+        const currentDescription = editingClass.description || "";
+
+        if (
+          data.name === editingClass.name &&
+          data.teacherId === currentTeacherId &&
+          (data.description || "") === currentDescription
+        ) {
+          toast({
+            title: "Info",
+            description: "No changes detected",
+          });
+          setIsCreateDialogOpen(false);
+          setEditingClass(null);
+          form.reset();
+          return;
         }
-      );
+
+        await axios.put(
+          `http://localhost:3000/class/update/${
+            editingClass._id || editingClass.id
+          }`,
+          payload,
+          config
+        );
+      } else {
+        await axios.post(`http://localhost:3000/class/create`, payload, config);
+      }
 
       toast({
         title: "Success",
-        description: "Class created successfully",
+        description: `Class ${
+          editingClass ? "updated" : "created"
+        } successfully`,
       });
 
       // Refresh classes list
@@ -131,7 +174,7 @@ const ManageClasses = () => {
     } catch (err) {
       toast({
         title: "Error",
-        description: err.response?.data?.message || "Failed to create class",
+        description: err.response?.data?.message || "Operation failed",
         variant: "destructive",
       });
     }
@@ -141,24 +184,42 @@ const ManageClasses = () => {
     setEditingClass(cls);
     form.reset({
       name: cls.name || "",
-      teacherId: cls.teacher?.id || "",
+      teacherId: cls.teacher?._id || "unassigned",
       description: cls.description || "",
     });
   };
 
-  const handleDelete = (classId) => {
-    // Delete functionality would need to be implemented in backend
-    toast({
-      title: "Not Available",
-      description: "Delete functionality not yet implemented",
-      variant: "destructive",
-    });
+  const handleDelete = async (classId) => {
+    if (!window.confirm("Are you sure you want to delete this class?")) return;
+
+    try {
+      await axios.delete(`http://localhost:3000/class/delete/${classId}`, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      toast({
+        title: "Success",
+        description: "Class deleted successfully",
+      });
+
+      // Refresh classes list
+      setClasses((prev) => prev.filter((c) => (c._id || c.id) !== classId));
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to delete class",
+        variant: "destructive",
+      });
+    }
   };
 
   const resetForm = () => {
     form.reset({
       name: "",
-      teacherId: "",
+      teacherId: "unassigned",
       description: "",
     });
     setEditingClass(null);
@@ -169,20 +230,22 @@ const ManageClasses = () => {
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
+          <Link href="/admin">
+            <Button
+              variant="outline"
+              size="sm"
+              className="mr-4"
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
-            <Link href="/admin">
-              <Button
-                variant="outline"
-                size="sm"
-                className="mr-4"
-                data-testid="button-back"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
             <div>
               <h1 className="text-3xl font-semibold text-foreground flex items-center">
                 <BookOpen className="mr-3 text-green-600 h-8 w-8" />
@@ -257,7 +320,7 @@ const ManageClasses = () => {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">
+                            <SelectItem value="unassigned">
                               No teacher assigned
                             </SelectItem>
                             {teachers?.map((teacher) => (

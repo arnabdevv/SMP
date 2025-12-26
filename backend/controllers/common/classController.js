@@ -5,7 +5,7 @@ const batchModel = require("../../models/batchModel");
 
 //Create class
 const createClass = async (req, res) => {
-  let { className } = req.body;
+  let { className, teacherId, description } = req.body;
   if (!className) {
     return res.status(400).json({ message: "Class Name is require." });
   }
@@ -16,6 +16,8 @@ const createClass = async (req, res) => {
     }
     const newClass = await classModel.create({
       name: className,
+      teacher: teacherId || undefined,
+      description,
     });
     res.status(200).json({ newClass });
   } catch (err) {
@@ -28,7 +30,14 @@ const createClass = async (req, res) => {
 // Fetch all classes with batch name & id.
 const fetchClasses = async (req, res) => {
   try {
-    const classes = await classModel.find({}).populate("batches", "_id name");
+    const classes = await classModel
+      .find({})
+      .populate("batches", "_id name")
+      .populate({
+        path: "teacher",
+        select: "user subject",
+        populate: { path: "user", select: "name" },
+      });
     // For each batch, get count via aggregation
     const classesWithCounts = await Promise.all(
       classes.map(async (cls) => {
@@ -56,4 +65,48 @@ const fetchClasses = async (req, res) => {
   }
 };
 
-module.exports = { createClass, fetchClasses };
+// Update class
+const updateClass = async (req, res) => {
+  const { id } = req.params;
+  const { className, teacherId, description } = req.body;
+
+  try {
+    const updatedClass = await classModel.findByIdAndUpdate(
+      id,
+      {
+        name: className,
+        teacher: teacherId || undefined,
+        description,
+      },
+      { new: true }
+    );
+
+    if (!updatedClass) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
+    res.json({ message: "Class updated successfully", class: updatedClass });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error updating class", error: err.message });
+  }
+};
+
+// Delete class
+const deleteClass = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deletedClass = await classModel.findByIdAndDelete(id);
+    if (!deletedClass) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+    res.json({ message: "Class deleted successfully" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error deleting class", error: err.message });
+  }
+};
+
+module.exports = { createClass, fetchClasses, updateClass, deleteClass };

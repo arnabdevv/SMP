@@ -5,6 +5,8 @@ const router = express.Router();
 const {
   createClass,
   fetchClasses,
+  updateClass,
+  deleteClass,
 } = require("../controllers/common/classController");
 const { isAuthenticated } = require("../middleware/authMiddleware");
 const { authorizeRole } = require("../middleware/roleMiddleware");
@@ -24,5 +26,16 @@ router.get(
 
 // POST  /api/class/create   - Create a new class
 router.post("/create", createClass);
+
+// PUT   /api/class/update/:id - Update a class
+router.put("/update/:id", isAuthenticated, authorizeRole("admin"), updateClass);
+
+// DELETE /api/class/delete/:id - Delete a class
+router.delete(
+  "/delete/:id",
+  isAuthenticated,
+  authorizeRole("admin"),
+  deleteClass
+);
 
 module.exports = router;
