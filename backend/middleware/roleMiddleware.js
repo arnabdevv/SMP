@@ -16,9 +16,9 @@ exports.authorizeRole = (...allowedRoles) => {
     }
 
     const userRole = req.user.role;
-    console.log(req.user);
+    // console.log(req.user);
 
-    console.log(`${userRole} | ${allowedRoles}`);
+    // console.log(`${userRole} | ${allowedRoles}`);
 
     // Check if user role is in the list of allowed roles
     if (!allowedRoles.includes(userRole)) {

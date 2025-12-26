@@ -78,6 +78,8 @@ const ManageStudents = () => {
   const [batches, setBatches] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [loading, setLoading] = useState(true);
+  const [filterClass, setFilterClass] = useState("");
+  const [filterBatch, setFilterBatch] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -258,6 +260,29 @@ const ManageStudents = () => {
     ];
     return colors[index % colors.length];
   };
+
+  const filterBatches = filterClass
+    ? classes.find((cls) => (cls._id || cls.id) === filterClass)?.batches || []
+    : [];
+
+  const filteredStudents = students.filter((student) => {
+    const sClassId =
+      student.class?._id ||
+      student.class?.id ||
+      student.classRef?._id ||
+      student.classRef?.id ||
+      student.classId;
+    const sBatchId =
+      student.batch?._id ||
+      student.batch?.id ||
+      student.batchRef?._id ||
+      student.batchRef?.id ||
+      student.batchId;
+
+    if (filterClass && sClassId !== filterClass) return false;
+    if (filterBatch && sBatchId !== filterBatch) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -604,35 +629,56 @@ const ManageStudents = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Select>
+              <Select
+                value={filterClass}
+                onValueChange={(val) => {
+                  setFilterClass(val);
+                  setFilterBatch("");
+                }}
+              >
                 <SelectTrigger data-testid="filter-class">
                   <SelectValue placeholder="Filter by Class" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Classes</SelectItem>
                   {classes?.map((cls) => (
-                    <SelectItem key={cls.id} value={cls.id}>
+                    <SelectItem
+                      key={cls._id || cls.id}
+                      value={cls._id || cls.id}
+                    >
                       {cls.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
-              <Select>
+              <Select
+                value={filterBatch}
+                onValueChange={setFilterBatch}
+                disabled={!filterClass}
+              >
                 <SelectTrigger data-testid="filter-batch">
                   <SelectValue placeholder="Filter by Batch" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Batches</SelectItem>
-                  {batches?.map((batch) => (
-                    <SelectItem key={batch.id} value={batch.id}>
+                  {filterBatches.map((batch) => (
+                    <SelectItem
+                      key={batch._id || batch.id}
+                      value={batch._id || batch.id}
+                    >
                       {batch.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
-              <Button variant="outline" data-testid="button-clear-filters">
+              <Button
+                variant="outline"
+                data-testid="button-clear-filters"
+                onClick={() => {
+                  setFilterClass("");
+                  setFilterBatch("");
+                }}
+              >
                 Clear Filters
               </Button>
             </div>
@@ -642,10 +688,10 @@ const ManageStudents = () => {
         {/* Students Table */}
         <Card>
           <CardHeader>
-            <CardTitle>All Students ({students?.length || 0})</CardTitle>
+            <CardTitle>All Students ({filteredStudents.length})</CardTitle>
           </CardHeader>
           <CardContent>
-            {students?.length === 0 ? (
+            {filteredStudents.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <GraduationCap className="mx-auto h-12 w-12 mb-4 opacity-50" />
                 <p>No students found</p>
@@ -665,8 +711,8 @@ const ManageStudents = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {students?.map((student, index) => (
-                    <TableRow key={student.id}>
+                  {filteredStudents.map((student, index) => (
+                    <TableRow key={student._id || student.id || index}>
                       <TableCell>
                         <div className="flex items-center">
                           <div
@@ -674,14 +720,20 @@ const ManageStudents = () => {
                               index
                             )} rounded-full flex items-center justify-center text-white font-medium mr-3`}
                           >
-                            {getInitials(student.user?.name || "Unknown")}
+                            {getInitials(
+                              student.fullName ||
+                                student.user?.name ||
+                                "Unknown"
+                            )}
                           </div>
                           <div>
                             <p
                               className="font-medium"
                               data-testid={`student-name-${index}`}
                             >
-                              {student.user?.name || "Unknown"}
+                              {student.fullName ||
+                                student.user?.name ||
+                                "Unknown"}
                             </p>
                             <p
                               className="text-sm text-muted-foreground"
@@ -696,13 +748,17 @@ const ManageStudents = () => {
                         {student.studentId}
                       </TableCell>
                       <TableCell data-testid={`student-class-${index}`}>
-                        {student.class?.name || "Not assigned"}
+                        {student.class?.name ||
+                          student.classRef?.name ||
+                          "Not assigned"}
                       </TableCell>
                       <TableCell data-testid={`student-batch-${index}`}>
-                        {student.batch?.name || "Not assigned"}
+                        {student.batch?.name ||
+                          student.batchRef?.name ||
+                          "Not assigned"}
                       </TableCell>
                       <TableCell data-testid={`student-email-${index}`}>
-                        {student.user?.email}
+                        {student.email || student.user?.email}
                       </TableCell>
                       <TableCell data-testid={`student-parent-${index}`}>
                         <div>
@@ -710,7 +766,9 @@ const ManageStudents = () => {
                             {student.parentName || "N/A"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {student.parentPhone || ""}
+                            {student.parentPhoneNumber ||
+                              student.parentPhone ||
+                              ""}
                           </p>
                         </div>
                       </TableCell>

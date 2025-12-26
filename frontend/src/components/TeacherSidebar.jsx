@@ -1,4 +1,3 @@
-import React from "react";
 import { Link, useLocation } from "wouter";
 import { Home, Users, BookOpen, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,7 +41,7 @@ const TeacherSidebar = () => {
             );
           })}
         </nav>
-        
+
         {/* Logout Button */}
         <div className="p-4 border-t border-border">
           <Button

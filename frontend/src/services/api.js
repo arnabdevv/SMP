@@ -2,16 +2,23 @@ import axios from "axios";
 
 const API_BASE_URL = "http://localhost:3000";
 
-// Create axios instance with default config
+/**
+ * API Client Configuration
+ * Creates an axios instance with default credentials and headers
+ * Used for all API communication with the backend
+ */
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true,
+  withCredentials: true, // Include cookies for session management
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Add request interceptor to include auth token
+/**
+ * Request Interceptor - Adds authentication token to requests
+ * Retrieves JWT token from localStorage and attaches to Authorization header
+ */
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -25,12 +32,15 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add response interceptor for error handling
+/**
+ * Response Interceptor - Handles error responses globally
+ * On 401 (Unauthorized), clears session and redirects to login
+ */
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Handle unauthorized responses (token expired or invalid)
     if (error.response?.status === 401) {
-      // Handle unauthorized - clear token and redirect to login
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.href = "/login";
@@ -39,10 +49,18 @@ apiClient.interceptors.response.use(
   }
 );
 
+/**
+ * API Request wrapper - Provides consistent response format
+ * @param {string} method - HTTP method (GET, POST, PUT, DELETE, etc.)
+ * @param {string} url - API endpoint URL
+ * @param {Object} data - Request body data (optional)
+ * @returns {Object} Normalized response object with ok flag and status
+ */
 export const apiRequest = async (method, url, data = null) => {
   try {
     const config = {
       method,
+      // Support both full URLs and relative paths
       url: url.startsWith("http") ? url : `${API_BASE_URL}${url}`,
       data,
     };
@@ -65,6 +83,11 @@ export const apiRequest = async (method, url, data = null) => {
   }
 };
 
+/**
+ * Fetch wrapper for GET requests with authentication
+ * @param {string} url - API endpoint URL
+ * @returns {Object} API response object
+ */
 export const fetchWithAuth = async (url) => {
   return apiRequest("GET", url);
 };

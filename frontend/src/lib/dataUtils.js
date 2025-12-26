@@ -1,4 +1,14 @@
-// Helper function to get dues count and amount for a student
+/**
+ * Data Utilities - Helper functions for data processing and calculations
+ * Used across multiple components for statistics and data manipulation
+ */
+
+/**
+ * Get dues count and amount for a student
+ * Filters fees object to find "due" months and calculates total
+ * @param {Object} fees - Monthly fees object with status values
+ * @returns {Object} Object with dueCount and dueAmount
+ */
 export const getStudentDuesInfo = (fees) => {
   const dueMonths = Object.entries(fees).filter(
     ([_, status]) => status === "due"
@@ -9,23 +19,44 @@ export const getStudentDuesInfo = (fees) => {
   };
 };
 
-// Helper function to get students in a class
+/**
+ * Filter students by class ID
+ * @param {Array} students - Array of student objects
+ * @param {string} classId - Class ID to filter by
+ * @returns {Array} Filtered array of students
+ */
 export const getStudentsInClass = (students, classId) => {
   return students.filter((student) => student.classId === classId);
 };
 
-// Helper function to get students in a batch
+/**
+ * Filter students by batch ID
+ * @param {Array} students - Array of student objects
+ * @param {string} batchId - Batch ID to filter by
+ * @returns {Array} Filtered array of students
+ */
 export const getStudentsInBatch = (students, batchId) => {
   return students.filter((student) => student.batchId === batchId);
 };
 
-// Helper function to get batches in a class
+/**
+ * Get batches for a specific class
+ * @param {Array} batches - Batch IDs array from class
+ * @param {string} classId - Class ID
+ * @param {Array} allBatches - All available batches
+ * @returns {Array} Batches belonging to this class
+ */
 export const getBatchesInClass = (batches, classId, allBatches) => {
   const classBatchIds = batches || [];
   return allBatches.filter((batch) => classBatchIds.includes(batch.id));
 };
 
-// Helper function to calculate total dues for a batch
+/**
+ * Calculate total dues for all students in a batch
+ * @param {Array} students - All students
+ * @param {string} batchId - Batch ID
+ * @returns {number} Total dues amount
+ */
 export const calculateBatchDues = (students, batchId) => {
   const batchStudents = getStudentsInBatch(students, batchId);
   return batchStudents.reduce((total, student) => {
@@ -34,7 +65,12 @@ export const calculateBatchDues = (students, batchId) => {
   }, 0);
 };
 
-// Helper function to calculate total dues for a class
+/**
+ * Calculate total dues for all students in a class
+ * @param {Array} students - All students
+ * @param {string} classId - Class ID
+ * @returns {number} Total dues amount
+ */
 export const calculateClassDues = (students, classId) => {
   const classStudents = getStudentsInClass(students, classId);
   return classStudents.reduce((total, student) => {
@@ -43,17 +79,26 @@ export const calculateClassDues = (students, classId) => {
   }, 0);
 };
 
-// Helper function to get a teacher's classes and batches
+/**
+ * Get all classes and batches for a teacher
+ * @param {string} teacherId - Teacher ID
+ * @param {Array} classes - All classes
+ * @param {Array} batches - All batches
+ * @returns {Object} Teacher's classes and batches
+ */
 export const getTeacherClassesAndBatches = (teacherId, classes, batches) => {
-  // In this dummy data we don't have teacher-class mapping,
-  // so returning all classes for demo
   return {
     classes,
     batches,
   };
 };
 
-// Helper function to calculate stats for a teacher
+/**
+ * Calculate comprehensive statistics for a teacher
+ * Computes total classes, batches, students, and dues
+ * @param {Object} teacher - Teacher object with classes and feeData
+ * @returns {Object} Statistics object with totals
+ */
 export const calculateTeacherStats = (teacher) => {
   if (!teacher || !teacher.classes) {
     return {
@@ -65,12 +110,10 @@ export const calculateTeacherStats = (teacher) => {
   }
 
   const totalClasses = teacher.classes.length;
-
   const totalBatches = teacher.classes.reduce(
     (count, cls) => count + (cls.batches ? cls.batches.length : 0),
     0
   );
-
   const totalStudents = teacher.classes.reduce((count, cls) => {
     return (
       count +
@@ -81,7 +124,7 @@ export const calculateTeacherStats = (teacher) => {
     );
   }, 0);
 
-  // ✅ Calculate total dues from teacher.feeData
+  // Calculate total dues from teacher's fee data
   let totalDues = 0;
   if (teacher.feeData) {
     for (const className in teacher.feeData) {
@@ -100,16 +143,21 @@ export const calculateTeacherStats = (teacher) => {
   };
 };
 
-// Helper function to calculate fees stats for a student
+/**
+ * Calculate fees statistics for a student
+ * Determines paid, unpaid months and amounts
+ * @param {Object} fees - Monthly fees object with status values
+ * @returns {Object} Statistics including paid/due months and amounts
+ */
 export const calculateStudentFeesStats = (fees) => {
   const months = Object.keys(fees);
   const paidMonths = months.filter((month) => fees[month] === "paid");
   const dueMonths = months.filter((month) => fees[month] === "unpaid");
-  const monthlyFee = 300; // Assuming monthly fee is 1500
+  const monthlyFee = 300; // Fixed monthly fee amount
 
   return {
-    paidMonths,
-    dueMonths,
+    paidMonths, // Array of paid month names
+    dueMonths, // Array of unpaid month names
     totalPaid: paidMonths.length * monthlyFee,
     totalDue: dueMonths.length * monthlyFee,
     monthlyFee,

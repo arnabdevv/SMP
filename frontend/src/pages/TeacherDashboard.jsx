@@ -3,35 +3,36 @@ import axios from "axios";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, GraduationCap } from "lucide-react";
 import TeacherSidebar from "@/components/TeacherSidebar";
-import dummyData from "../assets/dummyData.json";
-import {
-  getStudentsInClass,
-  getStudentsInBatch,
-  calculateBatchDues,
-  calculateClassDues,
-  calculateTeacherStats,
-} from "../lib/dataUtils";
+import { calculateTeacherStats } from "../lib/dataUtils";
 
-// Get current teacher data (using first teacher for demo)
-const batches = dummyData.batches;
-const students = dummyData.students;
-
+/**
+ * TeacherDashboard Component
+ * Displays teacher profile, assigned classes, batches, and student statistics
+ * Uses sidebar navigation for teacher-specific options
+ */
 const TeacherDashboard = () => {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  // State management
+  const [userData, setUserData] = useState(null); // Teacher profile data from backend
+  const [loading, setLoading] = useState(true); // API loading state
+  const [error, setError] = useState(""); // Error message display
 
+  /**
+   * Effect Hook: Fetch teacher dashboard data on component mount
+   * Retrieves teacher profile, assigned classes, batches, and fee data
+   */
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
+        // Fetch teacher dashboard data
         const res = await axios.get(`http://localhost:3000/teacher/dashboard`, {
-          withCredentials: true, // if using cookies for JWT
+          withCredentials: true, // Include cookies for session
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // if using localStorage
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // JWT token
           },
         });
         setUserData(res.data);
       } catch (err) {
+        // Error handling
         if (err.response) {
           setError(err.response.data.error || err.response.data.message);
         } else {
@@ -45,9 +46,14 @@ const TeacherDashboard = () => {
     fetchDashboard();
   }, []);
 
+  // Show loading state while fetching data
   if (loading) return <p>Loading dashboard...</p>;
-  // console.log(userData);
 
+  /**
+   * Helper: Extract initials from name for avatar display
+   * @param {string} name - Teacher name
+   * @returns {string} Uppercase initials or default "T"
+   */
   const getInitials = (name) => {
     if (!name) return "T";
     return name
@@ -57,17 +63,17 @@ const TeacherDashboard = () => {
       .toUpperCase();
   };
 
-  // Remove Navbar since we have sidebar now
+  // Calculate comprehensive statistics for this teacher
   const teacherStats = calculateTeacherStats(userData);
-  const classes = userData.classes;
-  const feeData = userData.feeData;
+  const classes = userData.classes; // Classes assigned to this teacher
+  const feeData = userData.feeData; // Fee collection data by class/batch
 
   return (
     <div className="min-h-screen bg-background">
       <TeacherSidebar />
       <div className="pl-64">
         <div className="p-8">
-          {/* Dashboard Header */}
+          {/* Page Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-semibold text-foreground">
               Teacher Dashboard

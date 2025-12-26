@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import TeacherSidebar from "@/components/TeacherSidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,8 +49,6 @@ const ExamManagement = () => {
   };
 
   const handleSaveMarks = () => {
-    // Handle saving marks
-    console.log("Saving marks:", marksData);
     setIsEnterMarksOpen(false);
     setSelectedExam(null);
     setMarksData({});

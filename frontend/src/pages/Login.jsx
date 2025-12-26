@@ -4,31 +4,42 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { GraduationCap, Settings, BookOpen, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
+/**
+ * Login Component - User authentication page
+ * Allows users to select role and enter credentials
+ * Supports admin, teacher, and student login
+ */
 const Login = () => {
+  // Form state
   const [selectedRole, setSelectedRole] = useState("admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+
+  // Navigation and auth
   const navigate = useNavigate();
-
   const { login, error } = useAuth();
-
   const { toast } = useToast();
 
+  /**
+   * Handle form submission - Authenticates user and redirects to dashboard
+   * @param {Event} e - Form submit event
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      // Attempt login with selected role
       await login(email, password, selectedRole);
+      // Redirect to appropriate dashboard based on role
       const dashboardPath =
         selectedRole === "admin" ? "/admin" : `/${selectedRole}-dashboard`;
       navigate(dashboardPath);
     } catch (err) {
+      // Extract and display error message
       const errorMessage =
         err.response?.data?.message ||
         "Login failed. Please check your credentials.";
@@ -40,6 +51,7 @@ const Login = () => {
     }
   };
 
+  // Available user roles for login
   const roles = [
     { id: "admin", label: "Admin", icon: Settings },
     { id: "teacher", label: "Teacher", icon: BookOpen },
@@ -103,13 +115,13 @@ const Login = () => {
                     placeholder=" "
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="peer pt-6 pb-2"
+                    className="peer pt-3 pb-4"
                     required
                     data-testid="input-email"
                   />
                   <Label
                     htmlFor="email"
-                    className="absolute left-3 top-2 text-xs text-muted-foreground peer-placeholder-shown:text-base peer-placeholder-shown:top-4 peer-focus:text-xs peer-focus:top-2 transition-all duration-200"
+                    className="absolute left-3 top-4 text-xs text-muted-foreground peer-placeholder-shown:text-base peer-placeholder-shown:top-1.5 peer-focus:text-xs peer-focus:top-2.5 peer-[&:not(:placeholder-shown)]:hidden transition-all duration-200"
                   >
                     Email Address
                   </Label>
@@ -121,14 +133,14 @@ const Login = () => {
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="peer pt-6 pb-2"
+                    className="peer pt-3 pb-4"
                     placeholder=" "
                     required
                     data-testid="input-password"
                   />
                   <Label
                     htmlFor="password"
-                    className="absolute left-3 top-2 text-xs text-muted-foreground peer-placeholder-shown:text-base peer-placeholder-shown:top-4 peer-focus:text-xs peer-focus:top-2 transition-all duration-200"
+                    className="absolute left-3 top-4 text-xs text-muted-foreground peer-placeholder-shown:text-base peer-placeholder-shown:top-1.5 peer-focus:text-xs peer-focus:top-2.5 peer-[&:not(:placeholder-shown)]:hidden transition-all duration-200"
                   >
                     Password
                   </Label>
@@ -136,20 +148,7 @@ const Login = () => {
               </div>
 
               <div className="flex items-center justify-between mt-4 mb-6">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="remember"
-                    checked={rememberMe}
-                    onCheckedChange={setRememberMe}
-                    data-testid="checkbox-remember"
-                  />
-                  <Label
-                    htmlFor="remember"
-                    className="text-sm text-muted-foreground"
-                  >
-                    Remember me
-                  </Label>
-                </div>
+                <div></div>
                 <Button
                   type="button"
                   variant="link"

@@ -5,50 +5,36 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, BookOpen, Layers } from "lucide-react";
-import dummyData from "../assets/dummyData.json";
 import { calculateStudentFeesStats } from "../lib/dataUtils";
 
-// Get current student data (using first student for demo)
-const mockTests = [
-  {
-    id: 1,
-    name: "Mock Test 1",
-    date: "2025-07-15",
-    marks: 85,
-    totalMarks: 100,
-  },
-  {
-    id: 2,
-    name: "Mock Test 2",
-    date: "2025-08-01",
-    marks: 92,
-    totalMarks: 100,
-  },
-  {
-    id: 3,
-    name: "Mock Test 3",
-    date: "2025-08-25",
-    marks: 88,
-    totalMarks: 100,
-  },
-];
-
+/**
+ * StudentDashboard Component
+ * Displays student profile, performance metrics, and fees information
+ * Fetches data from backend on component mount
+ */
 const StudentDashboard = () => {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  // State variables
+  const [userData, setUserData] = useState(null); // Student profile and data from backend
+  const [loading, setLoading] = useState(true); // API loading state
+  const [error, setError] = useState(""); // Error message from API call
 
+  /**
+   * Effect Hook: Fetch student dashboard data on component mount
+   * Calls /student/dashboard endpoint to get student profile, classes, batches, and fees
+   */
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/teacher/dashboard`, {
-          withCredentials: true, // if using cookies for JWT
+        // API call to fetch student dashboard data
+        const res = await axios.get(`http://localhost:3000/student/dashboard`, {
+          withCredentials: true, // Include cookies for session
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // if using localStorage
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Include JWT token
           },
         });
         setUserData(res.data);
       } catch (err) {
+        // Error handling
         if (err.response) {
           setError(err.response.data.error || err.response.data.message);
         } else {
@@ -61,11 +47,14 @@ const StudentDashboard = () => {
 
     fetchDashboard();
   }, []);
-  // console.log(userData);
 
   if (loading) return <p>Loading dashboard...</p>;
-  // console.log(userData);
 
+  /**
+   * Helper: Extract initials from name for avatar
+   * @param {string} name - Student name
+   * @returns {string} Uppercase initials
+   */
   const getInitials = (name) => {
     if (!name) return "ST";
     return name
@@ -76,7 +65,8 @@ const StudentDashboard = () => {
   };
 
   const feesStats = calculateStudentFeesStats(userData.fees.monthlyFees);
-  const monthlyFee = 300; // Assuming fixed monthly fee
+  const monthlyFee = 300;
+  const mockTests = userData.mockTests || [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -156,7 +146,7 @@ const StudentDashboard = () => {
                     </span>
                     <span
                       className="text-sm text-foreground"
-                      data-testid="student-batch"
+                      data-testid="student-session"
                     >
                       {userData.session
                         ? `${userData.session}`

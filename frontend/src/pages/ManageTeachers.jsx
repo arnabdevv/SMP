@@ -37,9 +37,12 @@ import { useToast } from "@/hooks/use-toast";
 const teacherFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .or(z.literal("")),
   phone: z.string().optional(),
-  subject: z.string().min(2, "Subject is required"),
+  subject: z.string().optional(),
   qualification: z.string().optional(),
   experience: z.coerce
     .number()
@@ -53,6 +56,19 @@ const ManageTeachers = () => {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  const form = useForm({
+    resolver: zodResolver(teacherFormSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      phone: "",
+      subject: "",
+      qualification: "",
+      experience: 0,
+    },
+  });
 
   useEffect(() => {
     const fetchTeachers = async () => {
@@ -82,30 +98,107 @@ const ManageTeachers = () => {
   }, [toast]);
 
   const onSubmit = async (data) => {
-    try {
-      const response = await axios.post(
-        `http://localhost:3000/teacher/register`,
-        {
-          fullName: data.name,
-          email: data.email,
-          password: data.password,
-          phoneNumber: data.phone,
-          subject: data.subject,
-          qualification: data.qualification,
-          experience: data.experience,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      toast({
-        title: "Success",
-        description: "Teacher registered successfully",
+    if (!editingTeacher && !data.password) {
+      form.setError("password", {
+        message: "Password is required for new teachers",
       });
+      return;
+    }
+
+    try {
+      if (editingTeacher) {
+        // Check if any data has actually changed
+        const normalize = (val) => (val || "").toString().trim();
+
+        const currentName = normalize(
+          editingTeacher.user?.name || editingTeacher.fullName
+        );
+        const currentEmail = normalize(
+          editingTeacher.user?.email || editingTeacher.email
+        );
+        const currentPhone = normalize(
+          editingTeacher.user?.phone || editingTeacher.phoneNumber
+        );
+        const currentSubject = normalize(editingTeacher.subject);
+        const currentQualification = normalize(editingTeacher.qualification);
+        const currentExperience = Number(editingTeacher.experience || 0);
+
+        const newName = normalize(data.name);
+        const newEmail = normalize(data.email);
+        const newPhone = normalize(data.phone);
+        const newSubject = normalize(data.subject);
+        const newQualification = normalize(data.qualification);
+        const newExperience = Number(data.experience || 0);
+
+        const hasChanges =
+          newName !== currentName ||
+          newEmail !== currentEmail ||
+          newPhone !== currentPhone ||
+          newSubject !== currentSubject ||
+          newQualification !== currentQualification ||
+          newExperience !== currentExperience ||
+          (data.password && data.password.length > 0);
+
+        if (!hasChanges) {
+          toast({
+            title: "No Changes",
+            description: "No teacher information was changed.",
+          });
+          setIsCreateDialogOpen(false);
+          setEditingTeacher(null);
+          form.reset();
+          return;
+        }
+
+        await axios.put(
+          `http://localhost:3000/teacher/update/${
+            editingTeacher._id || editingTeacher.id
+          }`,
+          {
+            fullName: data.name,
+            email: data.email,
+            password: data.password,
+            phoneNumber: data.phone,
+            subject: data.subject,
+            qualification: data.qualification,
+            experience: data.experience,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        toast({
+          title: "Success",
+          description: "Teacher updated successfully",
+        });
+      } else {
+        await axios.post(
+          `http://localhost:3000/teacher/register`,
+          {
+            fullName: data.name,
+            email: data.email,
+            password: data.password,
+            phoneNumber: data.phone,
+            subject: data.subject,
+            qualification: data.qualification,
+            experience: data.experience,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        toast({
+          title: "Success",
+          description: "Teacher registered successfully",
+        });
+      }
 
       // Refresh teachers list
       const res = await axios.get(
@@ -126,7 +219,8 @@ const ManageTeachers = () => {
       toast({
         title: "Error",
         description:
-          err.response?.data?.message || "Failed to register teacher",
+          err.response?.data?.message ||
+          `Failed to ${editingTeacher ? "update" : "register"} teacher`,
         variant: "destructive",
       });
     }
@@ -145,13 +239,34 @@ const ManageTeachers = () => {
     });
   };
 
-  const handleDelete = (teacherId) => {
-    // Delete functionality would need to be implemented in backend
-    toast({
-      title: "Not Available",
-      description: "Delete functionality not yet implemented",
-      variant: "destructive",
-    });
+  const handleDelete = async (teacherId) => {
+    if (!window.confirm("Are you sure you want to delete this teacher?"))
+      return;
+
+    try {
+      const response = await axios.delete(
+        `http://localhost:3000/teacher/delete/${teacherId}`,
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      toast({
+        title: "Success",
+        description: `${response.data.name} deleted successfully`,
+      });
+
+      setTeachers((prev) => prev.filter((t) => (t._id || t.id) !== teacherId));
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to delete teacher",
+        variant: "destructive",
+      });
+    }
   };
 
   const resetForm = () => {
@@ -191,20 +306,21 @@ const ManageTeachers = () => {
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Link href="/admin">
+          <Button
+            variant="outline"
+            size="sm"
+            className="mb-4"
+            data-testid="button-back"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </Link>
+
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
-            <Link href="/admin">
-              <Button
-                variant="outline"
-                size="sm"
-                className="mr-4"
-                data-testid="button-back"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
             <div>
               <h1 className="text-3xl font-semibold text-foreground flex items-center">
                 <Users className="mr-3 text-blue-600 h-8 w-8" />
@@ -464,6 +580,7 @@ const ManageTeachers = () => {
                             size="sm"
                             onClick={() => handleEdit(teacher)}
                             data-testid={`button-edit-teacher-${index}`}
+                            title="Edit Teacher"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -475,6 +592,7 @@ const ManageTeachers = () => {
                             }
                             className="text-destructive hover:text-destructive"
                             data-testid={`button-delete-teacher-${index}`}
+                            title="Delete Teacher"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

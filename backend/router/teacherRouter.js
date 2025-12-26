@@ -4,6 +4,8 @@ const {
   registerTeacher,
   loginTeacher,
   logoutTeacher,
+  deleteTeacher,
+  updateTeacher,
 } = require("../controllers/auth/teacherAuthController");
 const { isAuthenticated } = require("../middleware/authMiddleware");
 const { authorizeRole } = require("../middleware/roleMiddleware");
@@ -33,6 +35,20 @@ router.get(
   isAuthenticated,
   authorizeRole("admin"),
   fetchTeachers
+);
+
+router.delete(
+  "/delete/:id",
+  isAuthenticated,
+  authorizeRole("admin"),
+  deleteTeacher
+);
+
+router.put(
+  "/update/:id",
+  isAuthenticated,
+  authorizeRole("admin"),
+  updateTeacher
 );
 
 module.exports = router;

@@ -15,33 +15,48 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-const AdminDashboard = () => {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [stats, setStats] = useState({
-    totalTeachers: 0,
-    totalClasses: 0,
-    totalBatches: 0,
-    totalStudents: 0,
-  });
-  const [teachers, setTeachers] = useState([]);
-  const [classes, setClasses] = useState([]);
-  const [batches, setBatches] = useState([]);
-  const [students, setStudents] = useState([]);
+/**
+ * AdminDashboard Component
+ * Main admin control panel showing statistics and management options
+ * Displays counts and lists of teachers, classes, batches, and students
+ */
 
+// Axios config with authentication headers for all API calls
+const axiosConfig = {
+  withCredentials: true,
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+};
+
+const AdminDashboard = () => {
+  // State management
+  const [userData, setUserData] = useState(null); // Admin user data
+  const [loading, setLoading] = useState(true); // Loading state for API calls
+  const [error, setError] = useState(""); // Error messages
+  const [stats, setStats] = useState({
+    totalTeachers: 0, // Count of all teachers
+    totalClasses: 0, // Count of all classes
+    totalBatches: 0, // Count of all batches
+    totalStudents: 0, // Count of all students
+  });
+  const [teachers, setTeachers] = useState([]); // List of teachers for preview
+  const [classes, setClasses] = useState([]); // List of classes
+  const [batches, setBatches] = useState([]); // List of batches
+  const [students, setStudents] = useState([]); // List of students
+
+  /**
+   * Effect Hook: Fetch all dashboard data on component mount
+   * Makes 4 API calls: admin dashboard, teachers, classes/batches, students
+   * Updates statistics and lists from responses
+   */
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // Fetch dashboard data
+        // Fetch admin dashboard overview data
         const dashboardRes = await axios.get(
           `http://localhost:3000/admin/dashboard`,
-          {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
+          axiosConfig
         );
         setUserData(dashboardRes.data);
 
@@ -49,12 +64,7 @@ const AdminDashboard = () => {
         try {
           const teachersRes = await axios.get(
             `http://localhost:3000/teacher/getAllTeachers`,
-            {
-              withCredentials: true,
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
+            axiosConfig
           );
           const teachersData = teachersRes.data.teachers || [];
           setTeachers(teachersData);
@@ -67,12 +77,7 @@ const AdminDashboard = () => {
         try {
           const classesRes = await axios.get(
             `http://localhost:3000/class/all`,
-            {
-              withCredentials: true,
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
+            axiosConfig
           );
           const classesData = classesRes.data.classes || [];
           setClasses(classesData);
@@ -97,12 +102,7 @@ const AdminDashboard = () => {
         try {
           const studentsRes = await axios.get(
             `http://localhost:3000/student/list`,
-            {
-              withCredentials: true,
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
+            axiosConfig
           );
           const studentsData = studentsRes.data.students || [];
           setStudents(studentsData);
@@ -125,7 +125,6 @@ const AdminDashboard = () => {
   }, []);
 
   if (loading) return <p>Loading dashboard...</p>;
-  // console.log(userData);
 
   const getInitials = (name) => {
     return name

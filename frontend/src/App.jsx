@@ -1,5 +1,3 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Switch, Route } from "wouter";
 import { Toaster } from "@/components/ui/toaster";
@@ -18,18 +16,25 @@ import ManageBatches from "./pages/ManageBatches";
 import ManageStudents from "./pages/ManageStudents";
 import NotFound from "@/pages/not-found";
 
+/**
+ * Router component - Defines all application routes with role-based protection
+ * Routes are protected using ProtectedRoute component that validates user roles
+ */
 function Router() {
   return (
     <Switch>
+      {/* Public routes - accessible without authentication */}
       <Route path="/" component={Login} />
       <Route path="/login" component={Login} />
 
+      {/* Admin routes - only accessible by admin users */}
       <Route path="/admin">
         <ProtectedRoute allowedRoles={["admin"]}>
           <AdminDashboard />
         </ProtectedRoute>
       </Route>
 
+      {/* Teacher routes - only accessible by teacher users */}
       <Route path="/teacher-dashboard">
         <ProtectedRoute allowedRoles={["teacher"]}>
           <TeacherDashboard />
@@ -48,12 +53,14 @@ function Router() {
         </ProtectedRoute>
       </Route>
 
+      {/* Student routes - only accessible by student users */}
       <Route path="/student-dashboard">
         <ProtectedRoute allowedRoles={["student"]}>
           <StudentDashboard />
         </ProtectedRoute>
       </Route>
 
+      {/* Admin management routes */}
       <Route path="/admin/teachers">
         <ProtectedRoute allowedRoles={["admin"]}>
           <ManageTeachers />
@@ -78,11 +85,16 @@ function Router() {
         </ProtectedRoute>
       </Route>
 
+      {/* Catch-all route for undefined paths */}
       <Route component={NotFound} />
     </Switch>
   );
 }
 
+/**
+ * App component - Main application wrapper with providers
+ * Sets up authentication, UI providers, and routing
+ */
 function App() {
   return (
     <BrowserRouter>
