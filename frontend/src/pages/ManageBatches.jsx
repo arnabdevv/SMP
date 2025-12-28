@@ -28,12 +28,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -44,24 +38,13 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { format } from "date-fns";
-import {
-  ArrowLeft,
-  Plus,
-  Edit,
-  Trash2,
-  Layers,
-  CalendarIcon,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowLeft, Plus, Edit, Trash2, Layers } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const batchFormSchema = z.object({
   name: z.string().min(2, "Batch name must be at least 2 characters"),
   classId: z.string().min(1, "Class is required"),
-  academicYear: z.string().min(4, "Academic year is required").optional(),
-  startDate: z.date().optional(),
-  endDate: z.date().optional(),
+  academicYear: z.string().optional(),
 });
 
 const ManageBatches = () => {
@@ -85,16 +68,14 @@ const ManageBatches = () => {
         const classesData = classesRes.data.classes || [];
         setClasses(classesData);
 
-        // Extract all batches from classes
-        const allBatches = [];
-        classesData.forEach((cls) => {
-          if (cls.batches && Array.isArray(cls.batches)) {
-            cls.batches.forEach((batch) => {
-              allBatches.push({ ...batch, className: cls.name });
-            });
-          }
+        // Fetch all batches directly
+        const batchesRes = await axios.get(`http://localhost:3000/batch/all`, {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
-        setBatches(allBatches);
+        setBatches(batchesRes.data.batches || []);
       } catch (err) {
         toast({
           title: "Error",
@@ -115,26 +96,29 @@ const ManageBatches = () => {
       name: "",
       classId: "",
       academicYear: "",
-      startDate: undefined,
-      endDate: undefined,
     },
   });
 
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post(
-        `http://localhost:3000/batch/create`,
-        {
+      const url = editingBatch
+        ? `http://localhost:3000/batch/${editingBatch._id || editingBatch.id}`
+        : `http://localhost:3000/batch/create`;
+      const method = editingBatch ? "put" : "post";
+
+      await axios({
+        method,
+        url,
+        data: {
           batchName: data.name,
           classId: data.classId,
+          academicYear: data.academicYear,
         },
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
 
       toast({
         title: "Success",
@@ -142,24 +126,13 @@ const ManageBatches = () => {
       });
 
       // Refresh batches list
-      const classesRes = await axios.get(`http://localhost:3000/class/all`, {
+      const batchesRes = await axios.get(`http://localhost:3000/batch/all`, {
         withCredentials: true,
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-      const classesData = classesRes.data.classes || [];
-      setClasses(classesData);
-
-      const allBatches = [];
-      classesData.forEach((cls) => {
-        if (cls.batches && Array.isArray(cls.batches)) {
-          cls.batches.forEach((batch) => {
-            allBatches.push({ ...batch, className: cls.name });
-          });
-        }
-      });
-      setBatches(allBatches);
+      setBatches(batchesRes.data.batches || []);
 
       setIsCreateDialogOpen(false);
       setEditingBatch(null);
@@ -179,26 +152,54 @@ const ManageBatches = () => {
       name: batch.name || "",
       classId: batch.classRef?._id || batch.classRef || "",
       academicYear: batch.academicYear || "",
-      startDate: batch.startDate ? new Date(batch.startDate) : undefined,
-      endDate: batch.endDate ? new Date(batch.endDate) : undefined,
     });
   };
 
-  const handleDelete = (batchId) => {
-    // Delete functionality would need to be implemented in backend
-    toast({
-      title: "Not Available",
-      description: "Delete functionality not yet implemented",
-      variant: "destructive",
-    });
+  const handleDelete = async (batchId) => {
+    try {
+      if (!batchId) {
+        toast({
+          title: "Error",
+          description: "Batch ID is missing",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await axios.delete(`http://localhost:3000/batch/${batchId}`, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      toast({
+        title: "Success",
+        description: "Batch deleted successfully",
+      });
+
+      // Refresh batches list
+      const batchesRes = await axios.get(`http://localhost:3000/batch/all`, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setBatches(batchesRes.data.batches || []);
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to delete batch",
+        variant: "destructive",
+      });
+    }
   };
 
   const resetForm = () => {
     form.reset({
       name: "",
+      classId: "",
       academicYear: "",
-      startDate: undefined,
-      endDate: undefined,
     });
     setEditingBatch(null);
   };
@@ -208,20 +209,22 @@ const ManageBatches = () => {
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
+          <Link href="/admin">
+            <Button
+              variant="outline"
+              size="sm"
+              className="mr-4"
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
-            <Link href="/admin">
-              <Button
-                variant="outline"
-                size="sm"
-                className="mr-4"
-                data-testid="button-back"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
             <div>
               <h1 className="text-3xl font-semibold text-foreground flex items-center">
                 <Layers className="mr-3 text-purple-600 h-8 w-8" />
@@ -329,91 +332,6 @@ const ManageBatches = () => {
                     )}
                   />
 
-                  <FormField
-                    control={form.control}
-                    name="startDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Start Date (optional)</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                                data-testid="button-start-date"
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) =>
-                                date > new Date() ||
-                                date < new Date("1900-01-01")
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="endDate"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>End Date (optional)</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                                data-testid="button-end-date"
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) => date < new Date("1900-01-01")}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
                   <div className="flex justify-end space-x-2 pt-4">
                     <Button
                       type="button"
@@ -452,12 +370,13 @@ const ManageBatches = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Batch Name</TableHead>
-                    <TableHead>Class</TableHead>
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>End Date</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="w-[30%]">Batch Name</TableHead>
+                    <TableHead className="w-[20%]">Class</TableHead>
+                    <TableHead className="w-[15%]">Students</TableHead>
+                    <TableHead className="w-[20%]">Created</TableHead>
+                    <TableHead className="text-right w-[15%]">
+                      Actions
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -472,18 +391,9 @@ const ManageBatches = () => {
                         </div>
                       </TableCell>
                       <TableCell data-testid={`batch-year-${index}`}>
-                        {batch.className || "N/A"}
+                        {batch.classRef?.name || "N/A"}
                       </TableCell>
-                      <TableCell data-testid={`batch-start-date-${index}`}>
-                        {batch.startDate
-                          ? new Date(batch.startDate).toLocaleDateString()
-                          : "Not set"}
-                      </TableCell>
-                      <TableCell data-testid={`batch-end-date-${index}`}>
-                        {batch.endDate
-                          ? new Date(batch.endDate).toLocaleDateString()
-                          : "Not set"}
-                      </TableCell>
+                      <TableCell>{batch.students?.length || 0}</TableCell>
                       <TableCell data-testid={`batch-created-${index}`}>
                         {batch.createdAt
                           ? new Date(batch.createdAt).toLocaleDateString()
