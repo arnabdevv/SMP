@@ -87,8 +87,12 @@ const updateStudentDetails = async (req, res) => {
       email,
       phoneNumber,
       parentPhoneNumber,
-      newClassId,
-      newBatchId,
+      classId,
+      batchId,
+      password,
+      dateOfBirth,
+      address,
+      parentName,
     } = req.body;
 
     if (!studentId) {
@@ -113,24 +117,28 @@ const updateStudentDetails = async (req, res) => {
     if (fullName) student.fullName = fullName;
     if (phoneNumber) student.phoneNumber = phoneNumber;
     if (parentPhoneNumber) student.parentPhoneNumber = parentPhoneNumber;
+    if (password) student.password = password;
+    if (dateOfBirth) student.dateOfBirth = dateOfBirth;
+    if (address) student.address = address;
+    if (parentName) student.parentName = parentName;
 
     const oldBatchId = String(student.batchRef);
     const oldClassId = String(student.classRef);
 
-    if (newClassId && newClassId !== oldClassId) {
-      student.classRef = newClassId;
+    if (classId && classId !== oldClassId) {
+      student.classRef = classId;
     }
 
-    if (newBatchId && newBatchId !== oldBatchId) {
+    if (batchId && batchId !== oldBatchId) {
       await batchModel.findByIdAndUpdate(oldBatchId, {
         $pull: { students: student._id },
       });
 
-      await batchModel.findByIdAndUpdate(newBatchId, {
+      await batchModel.findByIdAndUpdate(batchId, {
         $addToSet: { students: student._id },
       });
 
-      student.batchRef = newBatchId;
+      student.batchRef = batchId;
     }
 
     await student.save();
@@ -153,8 +161,41 @@ const updateStudentDetails = async (req, res) => {
   }
 };
 
+const deleteStudent = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    if (!studentId) {
+      return res.status(400).json({ message: "Student ID is required" });
+    }
+
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Remove student from batch
+    if (student.batchRef) {
+      await batchModel.findByIdAndUpdate(student.batchRef, {
+        $pull: { students: studentId },
+      });
+    }
+
+    // Delete associated data
+    await Fees.deleteMany({ stdId: studentId });
+    await Student.findByIdAndDelete(studentId);
+
+    res.status(200).json({ message: "Student deleted successfully" });
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error deleting student", error: err.message });
+  }
+};
+
 module.exports = {
   getStudentsByClassAndBatch,
   updateStudentDetails,
   getBatchDiagnostics,
+  deleteStudent,
 };

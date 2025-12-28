@@ -61,13 +61,14 @@ import { useToast } from "@/hooks/use-toast";
 const studentFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().optional(),
   phone: z.string().min(1, "Phone is required"),
   classId: z.string().min(1, "Class is required"),
   batchId: z.string().min(1, "Batch is required"),
   dateOfBirth: z.date().optional(),
   address: z.string().optional(),
   parentPhone: z.string().min(1, "Parent phone is required"),
+  parentName: z.string().optional(),
 });
 
 const ManageStudents = () => {
@@ -143,34 +144,116 @@ const ManageStudents = () => {
       dateOfBirth: undefined,
       address: "",
       parentPhone: "",
+      parentName: "",
     },
   });
 
   const onSubmit = async (data) => {
     try {
-      const response = await axios.post(
-        `http://localhost:3000/student/register`,
-        {
-          fullName: data.name,
-          email: data.email,
-          password: data.password,
-          phoneNumber: data.phone,
-          parentPhoneNumber: data.parentPhone,
-          classId: data.classId,
-          batchId: data.batchId,
-        },
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      if (editingStudent) {
+        // Check for changes
+        const changes = {};
+        if (
+          data.name !== (editingStudent.fullName || editingStudent.user?.name)
+        )
+          changes.fullName = data.name;
+        if (data.email !== (editingStudent.email || editingStudent.user?.email))
+          changes.email = data.email;
+        if (data.password) changes.password = data.password;
+        if (
+          data.phone !==
+          (editingStudent.phoneNumber || editingStudent.user?.phone)
+        )
+          changes.phoneNumber = data.phone;
+        if (
+          data.parentPhone !==
+          (editingStudent.parentPhoneNumber || editingStudent.parentPhone)
+        )
+          changes.parentPhoneNumber = data.parentPhone;
 
-      toast({
-        title: "Success",
-        description: "Student registered successfully",
-      });
+        const currentClassId =
+          editingStudent.classRef?._id ||
+          editingStudent.classRef ||
+          editingStudent.classId;
+        if (data.classId !== currentClassId) changes.classId = data.classId;
+
+        const currentBatchId =
+          editingStudent.batchRef?._id ||
+          editingStudent.batchRef ||
+          editingStudent.batchId;
+        if (data.batchId !== currentBatchId) changes.batchId = data.batchId;
+
+        if (data.address !== editingStudent.address)
+          changes.address = data.address;
+        if (data.parentName !== editingStudent.parentName)
+          changes.parentName = data.parentName;
+
+        // Date comparison
+        const currentDate = editingStudent.dateOfBirth
+          ? new Date(editingStudent.dateOfBirth).toDateString()
+          : null;
+        const newDate = data.dateOfBirth
+          ? data.dateOfBirth.toDateString()
+          : null;
+        if (currentDate !== newDate) changes.dateOfBirth = data.dateOfBirth;
+
+        if (Object.keys(changes).length === 0) {
+          toast({
+            title: "No changes",
+            description: "No changes were made to the student.",
+          });
+          return;
+        }
+
+        await axios.post(
+          `http://localhost:3000/student/update/${
+            editingStudent._id || editingStudent.id
+          }`,
+          changes,
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        toast({
+          title: "Success",
+          description: "Student updated successfully",
+        });
+      } else {
+        if (!data.password || data.password.length < 6) {
+          form.setError("password", {
+            message: "Password must be at least 6 characters",
+          });
+          return;
+        }
+
+        await axios.post(
+          `http://localhost:3000/student/register`,
+          {
+            fullName: data.name,
+            email: data.email,
+            password: data.password,
+            phoneNumber: data.phone,
+            parentPhoneNumber: data.parentPhone,
+            classId: data.classId,
+            batchId: data.batchId,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        toast({
+          title: "Success",
+          description: "Student registered successfully",
+        });
+      }
 
       // Refresh students list
       const studentsRes = await axios.get(
@@ -214,16 +297,50 @@ const ManageStudents = () => {
         : undefined,
       address: student.address || "",
       parentPhone: student.parentPhoneNumber || student.parentPhone || "",
+      parentName: student.parentName || "",
     });
   };
 
-  const handleDelete = (studentId) => {
-    // Delete functionality would need to be implemented in backend
-    toast({
-      title: "Not Available",
-      description: "Delete functionality not yet implemented",
-      variant: "destructive",
-    });
+  const handleDelete = async (studentId) => {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete this student? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await axios.delete(`http://localhost:3000/student/${studentId}`, {
+        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      toast({
+        title: "Success",
+        description: "Student deleted successfully",
+      });
+
+      // Refresh list
+      const studentsRes = await axios.get(
+        `http://localhost:3000/student/list`,
+        {
+          withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setStudents(studentsRes.data.students || []);
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: err.response?.data?.message || "Failed to delete student",
+        variant: "destructive",
+      });
+    }
   };
 
   const resetForm = () => {
@@ -237,6 +354,7 @@ const ManageStudents = () => {
       dateOfBirth: undefined,
       address: "",
       parentPhone: "",
+      parentName: "",
     });
     setEditingStudent(null);
     setSelectedClass("");
@@ -289,20 +407,22 @@ const ManageStudents = () => {
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-6">
+          <Link href="/admin">
+            <Button
+              variant="outline"
+              size="sm"
+              className="mr-4"
+              data-testid="button-back"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+        </div>
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center">
-            <Link href="/admin">
-              <Button
-                variant="outline"
-                size="sm"
-                className="mr-4"
-                data-testid="button-back"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
             <div>
               <h1 className="text-3xl font-semibold text-foreground flex items-center">
                 <GraduationCap className="mr-3 text-orange-600 h-8 w-8" />
@@ -405,7 +525,7 @@ const ManageStudents = () => {
                       name="phone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Phone (optional)</FormLabel>
+                          <FormLabel>Phone</FormLabel>
                           <FormControl>
                             <Input
                               {...field}
@@ -511,7 +631,9 @@ const ManageStudents = () => {
                     name="dateOfBirth"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>Date of Birth (optional)</FormLabel>
+                        <FormLabel>
+                          Date of Birth{editingStudent ? "" : " (optional)"}
+                        </FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
@@ -555,7 +677,9 @@ const ManageStudents = () => {
                     name="address"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Address (optional)</FormLabel>
+                        <FormLabel>
+                          Address{editingStudent ? "" : " (optional)"}
+                        </FormLabel>
                         <FormControl>
                           <Textarea {...field} data-testid="input-address" />
                         </FormControl>
@@ -570,7 +694,9 @@ const ManageStudents = () => {
                       name="parentName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Parent Name (optional)</FormLabel>
+                          <FormLabel>
+                            Parent Name{editingStudent ? "" : " (optional)"}
+                          </FormLabel>
                           <FormControl>
                             <Input {...field} data-testid="input-parent-name" />
                           </FormControl>
@@ -579,7 +705,7 @@ const ManageStudents = () => {
                       )}
                     />
 
-                    <FormField
+                    {/* <FormField
                       control={form.control}
                       name="parentPhone"
                       render={({ field }) => (
@@ -594,7 +720,7 @@ const ManageStudents = () => {
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
+                    /> */}
                   </div>
 
                   <div className="flex justify-end space-x-2 pt-4">
@@ -698,105 +824,109 @@ const ManageStudents = () => {
                 <p className="text-sm">Click "Add Student" to get started</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Student ID</TableHead>
-                    <TableHead>Class</TableHead>
-                    <TableHead>Batch</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Parent</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredStudents.map((student, index) => (
-                    <TableRow key={student._id || student.id || index}>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <div
-                            className={`w-10 h-10 ${getRandomColor(
-                              index
-                            )} rounded-full flex items-center justify-center text-white font-medium mr-3`}
-                          >
-                            {getInitials(
-                              student.fullName ||
-                                student.user?.name ||
-                                "Unknown"
-                            )}
-                          </div>
-                          <div>
-                            <p
-                              className="font-medium"
-                              data-testid={`student-name-${index}`}
-                            >
-                              {student.fullName ||
-                                student.user?.name ||
-                                "Unknown"}
-                            </p>
-                            <p
-                              className="text-sm text-muted-foreground"
-                              data-testid={`student-roll-${index}`}
-                            >
-                              Roll: {student.rollNumber || "N/A"}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell data-testid={`student-id-${index}`}>
-                        {student.studentId}
-                      </TableCell>
-                      <TableCell data-testid={`student-class-${index}`}>
-                        {student.class?.name ||
-                          student.classRef?.name ||
-                          "Not assigned"}
-                      </TableCell>
-                      <TableCell data-testid={`student-batch-${index}`}>
-                        {student.batch?.name ||
-                          student.batchRef?.name ||
-                          "Not assigned"}
-                      </TableCell>
-                      <TableCell data-testid={`student-email-${index}`}>
-                        {student.email || student.user?.email}
-                      </TableCell>
-                      <TableCell data-testid={`student-parent-${index}`}>
-                        <div>
-                          <p className="text-sm">
-                            {student.parentName || "N/A"}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {student.parentPhoneNumber ||
-                              student.parentPhone ||
-                              ""}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(student)}
-                            data-testid={`button-edit-student-${index}`}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDelete(student.id)}
-                            className="text-destructive hover:text-destructive"
-                            data-testid={`button-delete-student-${index}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              <div className="max-h-[500px] overflow-y-auto overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Student</TableHead>
+                      <TableHead>Student ID</TableHead>
+                      <TableHead>Class</TableHead>
+                      <TableHead>Batch</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Parent</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStudents.map((student, index) => (
+                      <TableRow key={student._id || student.id || index}>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <div
+                              className={`w-10 h-10 ${getRandomColor(
+                                index
+                              )} rounded-full flex items-center justify-center text-white font-medium mr-3`}
+                            >
+                              {getInitials(
+                                student.fullName ||
+                                  student.user?.name ||
+                                  "Unknown"
+                              )}
+                            </div>
+                            <div>
+                              <p
+                                className="font-medium"
+                                data-testid={`student-name-${index}`}
+                              >
+                                {student.fullName ||
+                                  student.user?.name ||
+                                  "Unknown"}
+                              </p>
+                              <p
+                                className="text-sm text-muted-foreground"
+                                data-testid={`student-roll-${index}`}
+                              >
+                                Roll: {student.rollNumber || "N/A"}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell data-testid={`student-id-${index}`}>
+                          {student.studentId}
+                        </TableCell>
+                        <TableCell data-testid={`student-class-${index}`}>
+                          {student.class?.name ||
+                            student.classRef?.name ||
+                            "Not assigned"}
+                        </TableCell>
+                        <TableCell data-testid={`student-batch-${index}`}>
+                          {student.batch?.name ||
+                            student.batchRef?.name ||
+                            "Not assigned"}
+                        </TableCell>
+                        <TableCell data-testid={`student-email-${index}`}>
+                          {student.email || student.user?.email}
+                        </TableCell>
+                        <TableCell data-testid={`student-parent-${index}`}>
+                          <div>
+                            <p className="text-sm">
+                              {student.parentName || "N/A"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {student.parentPhoneNumber ||
+                                student.parentPhone ||
+                                ""}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(student)}
+                              data-testid={`button-edit-student-${index}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                handleDelete(student._id || student.id)
+                              }
+                              className="text-destructive hover:text-destructive"
+                              data-testid={`button-delete-student-${index}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>

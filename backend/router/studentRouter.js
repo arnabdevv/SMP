@@ -8,7 +8,6 @@ const {
   registerStudentInBulk,
   loginStudent,
   logoutStudent,
-  deleteStudent,
 } = require("../controllers/auth/studentAuthController");
 const { isAuthenticated } = require("../middleware/authMiddleware");
 const { authorizeRole } = require("../middleware/roleMiddleware");
@@ -17,6 +16,7 @@ const {
   getStudentsByClassAndBatch,
   updateStudentDetails,
   getBatchDiagnostics,
+  deleteStudent,
 } = require("../controllers/common/studentController");
 
 // GET   /api/student/                  - Test route ("Hey Student")

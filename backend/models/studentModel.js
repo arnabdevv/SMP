@@ -38,6 +38,15 @@ const studentSchema = mongoose.Schema({
   profileImage: {
     type: String,
   },
+  dateOfBirth: {
+    type: Date,
+  },
+  address: {
+    type: String,
+  },
+  parentName: {
+    type: String,
+  },
   fees: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Fees",
