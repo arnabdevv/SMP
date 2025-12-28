@@ -51,6 +51,7 @@ const teacherFormSchema = z.object({
 });
 
 const ManageTeachers = () => {
+  const [adminData, setAdminData] = useState(null); // Admin user data
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [teachers, setTeachers] = useState([]);
@@ -71,6 +72,15 @@ const ManageTeachers = () => {
   });
 
   useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        setAdminData(JSON.parse(userStr));
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
+
     const fetchTeachers = async () => {
       try {
         const res = await axios.get(
@@ -96,6 +106,7 @@ const ManageTeachers = () => {
 
     fetchTeachers();
   }, [toast]);
+  console.log(adminData);
 
   const onSubmit = async (data) => {
     if (!editingTeacher && !data.password) {
@@ -303,7 +314,7 @@ const ManageTeachers = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar adminData={adminData} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Link href="/admin">

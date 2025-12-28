@@ -31,7 +31,7 @@ const axiosConfig = {
 
 const AdminDashboard = () => {
   // State management
-  const [userData, setUserData] = useState(null); // Admin user data
+  const [adminData, setAdminData] = useState(null); // Admin user data
   const [loading, setLoading] = useState(true); // Loading state for API calls
   const [error, setError] = useState(""); // Error messages
   const [stats, setStats] = useState({
@@ -58,7 +58,7 @@ const AdminDashboard = () => {
           `http://localhost:3000/admin/dashboard`,
           axiosConfig
         );
-        setUserData(dashboardRes.data);
+        setAdminData(dashboardRes.data);
 
         // Fetch teachers
         try {
@@ -147,7 +147,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar userData={userData} />
+      <Navbar adminData={adminData} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Dashboard Header */}

@@ -79,6 +79,7 @@ export const AuthProvider = ({ children }) => {
       const userData = {
         ...(res.data.user || {}),
         role: role,
+        name: res.data.name,
       };
 
       setUser(userData);

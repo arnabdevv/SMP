@@ -72,6 +72,7 @@ const studentFormSchema = z.object({
 });
 
 const ManageStudents = () => {
+  const [adminData, setAdminData] = useState(null); // Admin user data
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [students, setStudents] = useState([]);
@@ -84,6 +85,14 @@ const ManageStudents = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        setAdminData(JSON.parse(userStr));
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
+    }
     const fetchData = async () => {
       try {
         // Fetch classes
@@ -404,7 +413,7 @@ const ManageStudents = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
+      <Navbar adminData={adminData} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">

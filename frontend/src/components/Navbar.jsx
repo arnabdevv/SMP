@@ -2,8 +2,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { LogOut, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const Navbar = ({ userData }) => {
+const Navbar = ({ adminData }) => {
   const { logout } = useAuth();
+  // console.log(adminData);
 
   return (
     <nav className="bg-card border-b border-border shadow-sm">
@@ -21,7 +22,7 @@ const Navbar = ({ userData }) => {
             <span className="text-sm text-muted-foreground">
               Welcome,{" "}
               <span className="font-medium">
-                {userData?.fullName || "User"}
+                {adminData?.fullName || adminData?.name || "User"}
               </span>
             </span>
             <Button
@@ -29,9 +30,13 @@ const Navbar = ({ userData }) => {
               size="sm"
               onClick={logout}
               data-testid="button-logout"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-red-500 hover:bg-accent transition-all duration-300 ease-in-out group"
+              title="Log out"
             >
               <LogOut className="h-4 w-4" />
+              <span className="hidden group-hover:inline ml-0 mb-0.5 text-red-500 text-sm transition-all duration-1000 ease-in-out">
+                Log out
+              </span>
             </Button>
           </div>
         </div>
