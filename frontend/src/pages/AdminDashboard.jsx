@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "wouter";
 import Navbar from "../components/Navbar";
+import LoadingDashboard from "../components/LoadingDashboard.jsx";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -124,7 +125,7 @@ const AdminDashboard = () => {
     fetchDashboardData();
   }, []);
 
-  if (loading) return <p>Loading dashboard...</p>;
+  if (loading) return <LoadingDashboard variant="admin" />;
 
   const getInitials = (name) => {
     return name

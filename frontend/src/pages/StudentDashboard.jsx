@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { User, BookOpen, Layers } from "lucide-react";
 import { calculateStudentFeesStats } from "../lib/dataUtils";
+import LoadingDashboard from "@/components/LoadingDashboard";
 
 /**
  * StudentDashboard Component
@@ -48,7 +49,7 @@ const StudentDashboard = () => {
     fetchDashboard();
   }, []);
 
-  if (loading) return <p>Loading dashboard...</p>;
+  if (loading) return <LoadingDashboard variant="student" />;
 
   /**
    * Helper: Extract initials from name for avatar

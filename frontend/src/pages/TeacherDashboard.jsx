@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, GraduationCap } from "lucide-react";
 import TeacherSidebar from "@/components/TeacherSidebar";
 import { calculateTeacherStats } from "../lib/dataUtils";
+import LoadingDashboard from "@/components/LoadingDashboard";
 
 /**
  * TeacherDashboard Component
@@ -47,7 +48,7 @@ const TeacherDashboard = () => {
   }, []);
 
   // Show loading state while fetching data
-  if (loading) return <p>Loading dashboard...</p>;
+  if (loading) return <LoadingDashboard variant="teacher" />;
 
   /**
    * Helper: Extract initials from name for avatar display
