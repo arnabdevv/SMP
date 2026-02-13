@@ -21,7 +21,10 @@ const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",  // Development
+      "https://smp-arnab.vercel.app"  // Production - replace    with your Vercel URL
+    ],
     credentials: true,
   })
 );
