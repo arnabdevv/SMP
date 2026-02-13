@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 Progess.txt
 cmd.txt
+
+backend/.env
+backend/.env
+backend/Tesk.txt

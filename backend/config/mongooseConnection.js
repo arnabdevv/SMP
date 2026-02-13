@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const debug = require("debug")("development:app");
 const { dbLog } = require("../logger");
 
-const uri = "mongodb+srv://arnab:motisir@cluster1.jm2owxl.mongodb.net/";
+const uri = process.env.MONGODB_URI;
 
 mongoose
   .connect(uri)
