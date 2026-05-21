@@ -16,7 +16,7 @@ const classRouter = require("./router/classRouter");
 const batchRouter = require("./router/batchRouter");
 
 const app = express();
-const port = process.env.PORT || 300;
+const port = process.env.PORT || 3000;
 
 
 app.use(
