@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -417,7 +417,7 @@ const ManageStudents = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <Link href="/admin">
+          <Link to="/admin">
             <Button
               variant="outline"
               size="sm"

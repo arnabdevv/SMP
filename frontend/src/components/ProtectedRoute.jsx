@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
@@ -27,7 +27,9 @@ const roleRouteMap = {
  */
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
-  const [location, setLocation] = useLocation();
+  // Bug #9 fix: use react-router-dom hooks instead of wouter
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { toast } = useToast();
 
   /**
@@ -40,13 +42,13 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
     // Handle unauthenticated users
     if (!user?.role) {
-      if (location !== "/login" && location !== "/") {
+      if (pathname !== "/login" && pathname !== "/") {
         toast({
           title: "Authentication Required",
           description: "Please log in to continue.",
           variant: "destructive",
         });
-        setLocation("/login");
+        navigate("/login");
       }
       return;
     }
@@ -55,7 +57,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     const hasPermission = allowedRoles.includes(user.role);
     const userRoutes = roleRouteMap[user.role] || [];
     const isAccessingOwnRole = userRoutes.some((route) =>
-      location.startsWith(route)
+      pathname.startsWith(route)
     );
 
     // Redirect to default route if no permission or wrong role route
@@ -67,13 +69,13 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       });
 
       const defaultPath = userRoutes[0];
-      if (defaultPath && location !== defaultPath) {
-        setLocation(defaultPath);
+      if (defaultPath && pathname !== defaultPath) {
+        navigate(defaultPath);
       } else {
-        setLocation("/login");
+        navigate("/login");
       }
     }
-  }, [location, user?.role, loading, setLocation, toast, allowedRoles]);
+  }, [pathname, user?.role, loading, navigate, toast, allowedRoles]);
 
   return children;
 };

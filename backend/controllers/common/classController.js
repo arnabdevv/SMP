@@ -71,15 +71,20 @@ const updateClass = async (req, res) => {
   const { className, teacherId, description } = req.body;
 
   try {
-    const updatedClass = await classModel.findByIdAndUpdate(
-      id,
-      {
-        name: className,
-        teacher: teacherId || undefined,
-        description,
-      },
-      { new: true }
-    );
+    // Bug #8 fix: Only include fields that were actually provided.
+    // Passing undefined values to findByIdAndUpdate would unset existing fields.
+    const updateData = {};
+    if (className !== undefined) updateData.name = className;
+    if (teacherId !== undefined) updateData.teacher = teacherId || null;
+    if (description !== undefined) updateData.description = description;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: "No fields provided to update" });
+    }
+
+    const updatedClass = await classModel.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
 
     if (!updatedClass) {
       return res.status(404).json({ message: "Class not found" });

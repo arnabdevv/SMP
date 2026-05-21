@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -106,7 +106,6 @@ const ManageTeachers = () => {
 
     fetchTeachers();
   }, [toast]);
-  console.log(adminData);
 
   const onSubmit = async (data) => {
     if (!editingTeacher && !data.password) {
@@ -162,8 +161,7 @@ const ManageTeachers = () => {
         }
 
         await axios.put(
-          `http://localhost:3000/teacher/update/${
-            editingTeacher._id || editingTeacher.id
+          `http://localhost:3000/teacher/update/${editingTeacher._id || editingTeacher.id
           }`,
           {
             fullName: data.name,
@@ -317,7 +315,7 @@ const ManageTeachers = () => {
       <Navbar adminData={adminData} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Link href="/admin">
+        <Link to="/admin">
           <Button
             variant="outline"
             size="sm"
@@ -546,8 +544,8 @@ const ManageTeachers = () => {
                           >
                             {getInitials(
                               teacher.user?.name ||
-                                teacher.fullName ||
-                                "Unknown"
+                              teacher.fullName ||
+                              "Unknown"
                             )}
                           </div>
                           <div>

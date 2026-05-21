@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "wouter";
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import LoadingDashboard from "../components/LoadingDashboard.jsx";
 import { Button } from "@/components/ui/button";
@@ -258,7 +258,7 @@ const AdminDashboard = () => {
                   <Users className="mr-2 text-blue-600 h-5 w-5" />
                   Manage Teachers
                 </CardTitle>
-                <Link href="/admin/teachers">
+                <Link to="/admin/teachers">
                   <Button size="sm" data-testid="button-add-teacher">
                     <Plus className="mr-1 h-4 w-4" /> Add Teacher
                   </Button>
@@ -316,7 +316,7 @@ const AdminDashboard = () => {
                   </div>
                 ))}
               </div>
-              <Link href="/admin/teachers">
+              <Link to="/admin/teachers">
                 <Button
                   variant="link"
                   className="w-full mt-4 p-0"
@@ -336,7 +336,7 @@ const AdminDashboard = () => {
                   <BookOpen className="mr-2 text-green-600 h-5 w-5" />
                   Manage Classes
                 </CardTitle>
-                <Link href="/admin/classes">
+                <Link to="/admin/classes">
                   <Button size="sm" data-testid="button-add-class">
                     <Plus className="mr-1 h-4 w-4" /> Add Class
                   </Button>
@@ -383,7 +383,7 @@ const AdminDashboard = () => {
                   </div>
                 ))}
               </div>
-              <Link href="/admin/classes">
+              <Link to="/admin/classes">
                 <Button
                   variant="link"
                   className="w-full mt-4 p-0"
@@ -403,7 +403,7 @@ const AdminDashboard = () => {
                   <Layers className="mr-2 text-purple-600 h-5 w-5" />
                   Manage Batches
                 </CardTitle>
-                <Link href="/admin/batches">
+                <Link to="/admin/batches">
                   <Button size="sm" data-testid="button-add-batch">
                     <Plus className="mr-1 h-4 w-4" /> Add Batch
                   </Button>
@@ -450,7 +450,7 @@ const AdminDashboard = () => {
                   </div>
                 ))}
               </div>
-              <Link href="/admin/batches">
+              <Link to="/admin/batches">
                 <Button
                   variant="link"
                   className="w-full mt-4 p-0"
@@ -470,7 +470,7 @@ const AdminDashboard = () => {
                   <GraduationCap className="mr-2 text-orange-600 h-5 w-5" />
                   Manage Students
                 </CardTitle>
-                <Link href="/admin/students">
+                <Link to="/admin/students">
                   <Button size="sm" data-testid="button-add-student">
                     <Plus className="mr-1 h-4 w-4" /> Add Student
                   </Button>
@@ -534,7 +534,7 @@ const AdminDashboard = () => {
                   </div>
                 ))}
               </div>
-              <Link href="/admin/students">
+              <Link to="/admin/students">
                 <Button
                   variant="link"
                   className="w-full mt-4 p-0"

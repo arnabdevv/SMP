@@ -1,11 +1,11 @@
-import { Link, useLocation } from "wouter";
+import { Link, useLocation } from "react-router-dom";
 import { Home, Users, BookOpen, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 
 const TeacherSidebar = () => {
   const { logout } = useAuth();
-  const [location] = useLocation();
+  const { pathname } = useLocation(); // react-router-dom returns an object
   const navItems = [
     { icon: Home, label: "Dashboard", path: "/teacher-dashboard" },
     { icon: Users, label: "Student Management", path: "/teacher/students" },
@@ -24,7 +24,7 @@ const TeacherSidebar = () => {
         <nav className="flex-1 px-4 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = location === item.path;
+            const isActive = pathname === item.path;
             return (
               <Link
                 key={item.path}

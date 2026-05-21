@@ -117,7 +117,12 @@ const updateStudentDetails = async (req, res) => {
     if (fullName) student.fullName = fullName;
     if (phoneNumber) student.phoneNumber = phoneNumber;
     if (parentPhoneNumber) student.parentPhoneNumber = parentPhoneNumber;
-    if (password) student.password = password;
+    // Bug #7 fix: hash the password before saving — never store plain text
+    if (password) {
+      const bcrypt = require("bcrypt");
+      const salt = await bcrypt.genSalt(10);
+      student.password = await bcrypt.hash(password, salt);
+    }
     if (dateOfBirth) student.dateOfBirth = dateOfBirth;
     if (address) student.address = address;
     if (parentName) student.parentName = parentName;

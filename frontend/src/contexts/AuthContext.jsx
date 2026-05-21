@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 /**
  * AuthContext - Manages authentication state and user data
  * Provides login, logout, and user information to the entire application
@@ -67,19 +69,20 @@ export const AuthProvider = ({ children }) => {
     setError(null);
 
     try {
-      // Determine endpoint based on user role
-      const endpoint = `http://localhost:3000/${role}/login`;
+      // Bug #10 fix: use env variable instead of hardcoded localhost
+      const endpoint = `${API_BASE}/${role}/login`;
       const res = await axios.post(
         endpoint,
         { email, password },
-        { withCredentials: true } // Include cookies for session management
+        { withCredentials: true }
       );
 
-      // Ensure role is always set in user data
+      // Normalize response: admin returns res.data.name directly,
+      // teacher/student return res.data.user.fullName
       const userData = {
         ...(res.data.user || {}),
         role: role,
-        name: res.data.name,
+        name: res.data.name || res.data.user?.fullName || "",
       };
 
       setUser(userData);
@@ -108,8 +111,8 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const role = user?.role || "admin";
-      // Notify backend of logout
-      await axios.get(`http://localhost:3000/${role}/logout`, {
+      // Bug #10 fix: use env variable instead of hardcoded localhost
+      await axios.get(`${API_BASE}/${role}/logout`, {
         withCredentials: true,
       });
     } catch (err) {

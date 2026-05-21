@@ -12,13 +12,13 @@ const studentSchema = mongoose.Schema({
   },
   phoneNumber: {
     type: String,
-    require: true,
+    required: true, // fixed typo: was `require`
     unique: true,
   },
   parentPhoneNumber: {
     type: String,
-    require: true,
-    unique: true,
+    required: true, // fixed typo: was `require`
+    // unique removed: siblings share the same parent phone number
   },
   password: {
     type: String,

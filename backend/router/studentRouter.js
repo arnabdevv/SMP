@@ -4,7 +4,6 @@ const router = express.Router();
 
 const {
   registerStudent,
-  regis,
   registerStudentInBulk,
   loginStudent,
   logoutStudent,

@@ -1,5 +1,4 @@
-import { BrowserRouter } from "react-router-dom";
-import { Switch, Route } from "wouter";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -22,72 +21,94 @@ import NotFound from "@/pages/not-found";
  */
 function Router() {
   return (
-    <Switch>
+    <Routes>
       {/* Public routes - accessible without authentication */}
-      <Route path="/" component={Login} />
-      <Route path="/login" component={Login} />
+      <Route path="/" element={<Login />} />
+      <Route path="/login" element={<Login />} />
 
       {/* Admin routes - only accessible by admin users */}
-      <Route path="/admin">
-        <ProtectedRoute allowedRoles={["admin"]}>
-          <AdminDashboard />
-        </ProtectedRoute>
-      </Route>
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Teacher routes - only accessible by teacher users */}
-      <Route path="/teacher-dashboard">
-        <ProtectedRoute allowedRoles={["teacher"]}>
-          <TeacherDashboard />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/teacher/students">
-        <ProtectedRoute allowedRoles={["teacher"]}>
-          <TeacherStudentManagement />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/teacher/exams">
-        <ProtectedRoute allowedRoles={["teacher"]}>
-          <TeacherExamManagement />
-        </ProtectedRoute>
-      </Route>
+      <Route
+        path="/teacher-dashboard"
+        element={
+          <ProtectedRoute allowedRoles={["teacher"]}>
+            <TeacherDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/teacher/students"
+        element={
+          <ProtectedRoute allowedRoles={["teacher"]}>
+            <TeacherStudentManagement />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/teacher/exams"
+        element={
+          <ProtectedRoute allowedRoles={["teacher"]}>
+            <TeacherExamManagement />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Student routes - only accessible by student users */}
-      <Route path="/student-dashboard">
-        <ProtectedRoute allowedRoles={["student"]}>
-          <StudentDashboard />
-        </ProtectedRoute>
-      </Route>
+      <Route
+        path="/student-dashboard"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentDashboard />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Admin management routes */}
-      <Route path="/admin/teachers">
-        <ProtectedRoute allowedRoles={["admin"]}>
-          <ManageTeachers />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin/classes">
-        <ProtectedRoute allowedRoles={["admin"]}>
-          <ManageClasses />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin/batches">
-        <ProtectedRoute allowedRoles={["admin"]}>
-          <ManageBatches />
-        </ProtectedRoute>
-      </Route>
-
-      <Route path="/admin/students">
-        <ProtectedRoute allowedRoles={["admin"]}>
-          <ManageStudents />
-        </ProtectedRoute>
-      </Route>
+      <Route
+        path="/admin/teachers"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <ManageTeachers />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/classes"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <ManageClasses />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/batches"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <ManageBatches />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/students"
+        element={
+          <ProtectedRoute allowedRoles={["admin"]}>
+            <ManageStudents />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Catch-all route for undefined paths */}
-      <Route component={NotFound} />
-    </Switch>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
 

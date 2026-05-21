@@ -32,6 +32,13 @@ const registerStudent = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    // Bug #4 fix: Validate batch exists BEFORE creating the student
+    // to avoid orphaned student documents if batchId is invalid.
+    const batch = await batchModel.findById(batchId);
+    if (!batch) {
+      return res.status(404).json({ message: "Batch not found" });
+    }
+
     const existedStd = await Student.findOne({ email });
     if (existedStd) {
       return res.status(400).json({ message: "Student already exists" });
@@ -63,7 +70,6 @@ const registerStudent = async (req, res) => {
     const token = generateToken(newStd);
     // res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
 
-    const batch = await batchModel.findById(batchId);
     batch.students.push(newStd._id);
     await batch.save();
 

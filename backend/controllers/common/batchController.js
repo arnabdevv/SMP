@@ -27,6 +27,13 @@ const createBatch = async (req, res) => {
       .json({ message: "Batch Name & Class Id is required." });
   }
   try {
+    // Bug #5 fix: Validate class exists BEFORE creating the batch
+    // to avoid orphaned batch documents if classId is invalid.
+    const classData = await classModel.findById(classId);
+    if (!classData) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
     const existing = await batchModel.findOne({
       name: batchName,
       classRef: classId,
@@ -41,7 +48,6 @@ const createBatch = async (req, res) => {
       academicYear,
     });
 
-    const classData = await classModel.findOne({ _id: classId });
     classData.batches.push(newBatch._id);
     await classData.save();
 
