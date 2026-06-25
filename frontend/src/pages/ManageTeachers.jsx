@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../services/api";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -83,15 +83,7 @@ const ManageTeachers = () => {
 
     const fetchTeachers = async () => {
       try {
-        const res = await axios.get(
-          `http://localhost:3000/teacher/getAllTeachers`,
-          {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const res = await apiClient.get("/teacher/getAllTeachers");
         setTeachers(res.data.teachers || []);
       } catch (err) {
         toast({
@@ -160,9 +152,8 @@ const ManageTeachers = () => {
           return;
         }
 
-        await axios.put(
-          `http://localhost:3000/teacher/update/${editingTeacher._id || editingTeacher.id
-          }`,
+        await apiClient.put(
+          `/teacher/update/${editingTeacher._id || editingTeacher.id}`,
           {
             fullName: data.name,
             email: data.email,
@@ -171,12 +162,6 @@ const ManageTeachers = () => {
             subject: data.subject,
             qualification: data.qualification,
             experience: data.experience,
-          },
-          {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
           }
         );
         toast({
@@ -184,8 +169,8 @@ const ManageTeachers = () => {
           description: "Teacher updated successfully",
         });
       } else {
-        await axios.post(
-          `http://localhost:3000/teacher/register`,
+        await apiClient.post(
+          "/teacher/register",
           {
             fullName: data.name,
             email: data.email,
@@ -194,12 +179,6 @@ const ManageTeachers = () => {
             subject: data.subject,
             qualification: data.qualification,
             experience: data.experience,
-          },
-          {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
           }
         );
 
@@ -210,15 +189,7 @@ const ManageTeachers = () => {
       }
 
       // Refresh teachers list
-      const res = await axios.get(
-        `http://localhost:3000/teacher/getAllTeachers`,
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const res = await apiClient.get("/teacher/getAllTeachers");
       setTeachers(res.data.teachers || []);
 
       setIsCreateDialogOpen(false);
@@ -253,14 +224,8 @@ const ManageTeachers = () => {
       return;
 
     try {
-      const response = await axios.delete(
-        `http://localhost:3000/teacher/delete/${teacherId}`,
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
+      const response = await apiClient.delete(
+        `/teacher/delete/${teacherId}`
       );
 
       toast({

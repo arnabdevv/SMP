@@ -1,8 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import apiClient from "../services/api";
 
 /**
  * AuthContext - Manages authentication state and user data
@@ -69,13 +67,7 @@ export const AuthProvider = ({ children }) => {
     setError(null);
 
     try {
-      // Bug #10 fix: use env variable instead of hardcoded localhost
-      const endpoint = `${API_BASE}/${role}/login`;
-      const res = await axios.post(
-        endpoint,
-        { email, password },
-        { withCredentials: true }
-      );
+      const res = await apiClient.post(`/${role}/login`, { email, password });
 
       // Normalize response: admin returns res.data.name directly,
       // teacher/student return res.data.user.fullName
@@ -111,10 +103,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const role = user?.role || "admin";
-      // Bug #10 fix: use env variable instead of hardcoded localhost
-      await axios.get(`${API_BASE}/${role}/logout`, {
-        withCredentials: true,
-      });
+      await apiClient.get(`/${role}/logout`);
     } catch (err) {
       // Log error but don't throw - logout should complete regardless
       console.error("Logout error:", err);

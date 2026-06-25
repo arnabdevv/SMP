@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../services/api";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -96,24 +96,11 @@ const ManageStudents = () => {
     const fetchData = async () => {
       try {
         // Fetch classes
-        const classesRes = await axios.get(`http://localhost:3000/class/all`, {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const classesRes = await apiClient.get("/class/all");
         setClasses(classesRes.data.classes || []);
 
         // Fetch all students
-        const studentsRes = await axios.get(
-          `http://localhost:3000/student/list`,
-          {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const studentsRes = await apiClient.get("/student/list");
         setStudents(studentsRes.data.students || []);
       } catch (err) {
         toast({
@@ -214,17 +201,9 @@ const ManageStudents = () => {
           return;
         }
 
-        await axios.post(
-          `http://localhost:3000/student/update/${
-            editingStudent._id || editingStudent.id
-          }`,
-          changes,
-          {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
+        await apiClient.post(
+          `/student/update/${editingStudent._id || editingStudent.id}`,
+          changes
         );
 
         toast({
@@ -239,8 +218,8 @@ const ManageStudents = () => {
           return;
         }
 
-        await axios.post(
-          `http://localhost:3000/student/register`,
+        await apiClient.post(
+          "/student/register",
           {
             fullName: data.name,
             email: data.email,
@@ -249,12 +228,6 @@ const ManageStudents = () => {
             parentPhoneNumber: data.parentPhone,
             classId: data.classId,
             batchId: data.batchId,
-          },
-          {
-            withCredentials: true,
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
           }
         );
 
@@ -265,15 +238,7 @@ const ManageStudents = () => {
       }
 
       // Refresh students list
-      const studentsRes = await axios.get(
-        `http://localhost:3000/student/list`,
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const studentsRes = await apiClient.get("/student/list");
       setStudents(studentsRes.data.students || []);
 
       setIsCreateDialogOpen(false);
@@ -320,12 +285,7 @@ const ManageStudents = () => {
     }
 
     try {
-      await axios.delete(`http://localhost:3000/student/${studentId}`, {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      await apiClient.delete(`/student/${studentId}`);
 
       toast({
         title: "Success",
@@ -333,15 +293,7 @@ const ManageStudents = () => {
       });
 
       // Refresh list
-      const studentsRes = await axios.get(
-        `http://localhost:3000/student/list`,
-        {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const studentsRes = await apiClient.get("/student/list");
       setStudents(studentsRes.data.students || []);
     } catch (err) {
       toast({

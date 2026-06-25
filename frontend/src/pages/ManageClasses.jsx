@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../services/api";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -79,25 +79,12 @@ const ManageClasses = () => {
     const fetchData = async () => {
       try {
         // Fetch classes
-        const classesRes = await axios.get(`http://localhost:3000/class/all`, {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const classesRes = await apiClient.get("/class/all");
         setClasses(classesRes.data.classes || []);
 
         // Fetch teachers
         try {
-          const teachersRes = await axios.get(
-            `http://localhost:3000/teacher/getAllTeachers`,
-            {
-              withCredentials: true,
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
+          const teachersRes = await apiClient.get("/teacher/getAllTeachers");
           setTeachers(teachersRes.data.teachers || []);
         } catch (err) {
           console.error("Error fetching teachers:", err);
@@ -151,15 +138,12 @@ const ManageClasses = () => {
           return;
         }
 
-        await axios.put(
-          `http://localhost:3000/class/update/${
-            editingClass._id || editingClass.id
-          }`,
-          payload,
-          config
+        await apiClient.put(
+          `/class/update/${editingClass._id || editingClass.id}`,
+          payload
         );
       } else {
-        await axios.post(`http://localhost:3000/class/create`, payload, config);
+        await apiClient.post("/class/create", payload);
       }
 
       toast({
@@ -170,12 +154,7 @@ const ManageClasses = () => {
       });
 
       // Refresh classes list
-      const classesRes = await axios.get(`http://localhost:3000/class/all`, {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const classesRes = await apiClient.get("/class/all");
       setClasses(classesRes.data.classes || []);
 
       setIsCreateDialogOpen(false);
@@ -203,12 +182,7 @@ const ManageClasses = () => {
     if (!window.confirm("Are you sure you want to delete this class?")) return;
 
     try {
-      await axios.delete(`http://localhost:3000/class/delete/${classId}`, {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      await apiClient.delete(`/class/delete/${classId}`);
 
       toast({
         title: "Success",

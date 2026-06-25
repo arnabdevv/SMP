@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import apiClient from "../services/api";
 import TeacherSidebar from "@/components/TeacherSidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,9 +69,7 @@ const StudentManagement = () => {
   useEffect(() => {
     const fetchClassData = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/class/all`, {
-          withCredentials: true,
-        });
+        const res = await apiClient.get("/class/all");
         setClassData(res.data.classes || []);
       } catch (err) {
         if (err.response && err.response.status === 401) {
@@ -106,12 +104,11 @@ const StudentManagement = () => {
       }
 
       try {
-        const res = await axios.get(`http://localhost:3000/student/list`, {
+        const res = await apiClient.get("/student/list", {
           params: {
             classId: selectedClass,
             batchId: selectedBatch,
           },
-          withCredentials: true,
         });
         setStudents(res.data.students || []);
       } catch (err) {
@@ -179,12 +176,9 @@ const StudentManagement = () => {
         return;
       }
 
-      const response = await axios.post(
-        "http://localhost:3000/student/register",
-        addStudentForm,
-        {
-          withCredentials: true,
-        }
+      const response = await apiClient.post(
+        "/student/register",
+        addStudentForm
       );
 
       // If successful, refresh the students list if the current class/batch matches
@@ -256,9 +250,7 @@ const StudentManagement = () => {
 
     try {
       // Assuming the endpoint is DELETE /student/:id
-      await axios.delete(`http://localhost:3000/student/${studentId}`, {
-        withCredentials: true,
-      });
+      await apiClient.delete(`/student/${studentId}`);
 
       // Remove student from the local list
       setStudents((prev) =>
@@ -296,10 +288,9 @@ const StudentManagement = () => {
 
     try {
       const studentId = editingStudent._id || editingStudent.id;
-      const res = await axios.post(
-        `http://localhost:3000/student/update/${studentId}`,
-        editStudentForm,
-        { withCredentials: true }
+      const res = await apiClient.post(
+        `/student/update/${studentId}`,
+        editStudentForm
       );
 
       // Update the student in the local list

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import apiClient from "../services/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, GraduationCap } from "lucide-react";
 import TeacherSidebar from "@/components/TeacherSidebar";
@@ -25,12 +25,7 @@ const TeacherDashboard = () => {
     const fetchDashboard = async () => {
       try {
         // Fetch teacher dashboard data
-        const res = await axios.get(`http://localhost:3000/teacher/dashboard`, {
-          withCredentials: true, // Include cookies for session
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // JWT token
-          },
-        });
+        const res = await apiClient.get("/teacher/dashboard");
         setUserData(res.data);
       } catch (err) {
         // Error handling

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import apiClient from "../services/api";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -69,22 +69,12 @@ const ManageBatches = () => {
     const fetchData = async () => {
       try {
         // Fetch classes to get batches
-        const classesRes = await axios.get(`http://localhost:3000/class/all`, {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const classesRes = await apiClient.get("/class/all");
         const classesData = classesRes.data.classes || [];
         setClasses(classesData);
 
         // Fetch all batches directly
-        const batchesRes = await axios.get(`http://localhost:3000/batch/all`, {
-          withCredentials: true,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
+        const batchesRes = await apiClient.get("/batch/all");
         setBatches(batchesRes.data.batches || []);
       } catch (err) {
         toast({
@@ -112,22 +102,14 @@ const ManageBatches = () => {
   const onSubmit = async (data) => {
     try {
       const url = editingBatch
-        ? `http://localhost:3000/batch/${editingBatch._id || editingBatch.id}`
-        : `http://localhost:3000/batch/create`;
+        ? `/batch/${editingBatch._id || editingBatch.id}`
+        : "/batch/create";
       const method = editingBatch ? "put" : "post";
 
-      await axios({
-        method,
-        url,
-        data: {
-          batchName: data.name,
-          classId: data.classId,
-          academicYear: data.academicYear,
-        },
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+      await apiClient[method](url, {
+        batchName: data.name,
+        classId: data.classId,
+        academicYear: data.academicYear,
       });
 
       toast({
@@ -136,12 +118,7 @@ const ManageBatches = () => {
       });
 
       // Refresh batches list
-      const batchesRes = await axios.get(`http://localhost:3000/batch/all`, {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const batchesRes = await apiClient.get("/batch/all");
       setBatches(batchesRes.data.batches || []);
 
       setIsCreateDialogOpen(false);
@@ -176,12 +153,7 @@ const ManageBatches = () => {
         return;
       }
 
-      await axios.delete(`http://localhost:3000/batch/${batchId}`, {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      await apiClient.delete(`/batch/${batchId}`);
 
       toast({
         title: "Success",
@@ -189,12 +161,7 @@ const ManageBatches = () => {
       });
 
       // Refresh batches list
-      const batchesRes = await axios.get(`http://localhost:3000/batch/all`, {
-        withCredentials: true,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const batchesRes = await apiClient.get("/batch/all");
       setBatches(batchesRes.data.batches || []);
     } catch (err) {
       toast({

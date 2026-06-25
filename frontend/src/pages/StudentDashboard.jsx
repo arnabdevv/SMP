@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import apiClient from "../services/api";
 import Navbar from "../components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,12 +27,7 @@ const StudentDashboard = () => {
     const fetchDashboard = async () => {
       try {
         // API call to fetch student dashboard data
-        const res = await axios.get(`http://localhost:3000/student/dashboard`, {
-          withCredentials: true, // Include cookies for session
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // Include JWT token
-          },
-        });
+        const res = await apiClient.get("/student/dashboard");
         setUserData(res.data);
       } catch (err) {
         // Error handling

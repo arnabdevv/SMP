@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import apiClient from "../services/api";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import LoadingDashboard from "../components/LoadingDashboard.jsx";
@@ -22,13 +22,6 @@ import {
  * Displays counts and lists of teachers, classes, batches, and students
  */
 
-// Axios config with authentication headers for all API calls
-const axiosConfig = {
-  withCredentials: true,
-  headers: {
-    Authorization: `Bearer ${localStorage.getItem("token")}`,
-  },
-};
 
 const AdminDashboard = () => {
   // State management
@@ -55,18 +48,12 @@ const AdminDashboard = () => {
     const fetchDashboardData = async () => {
       try {
         // Fetch admin dashboard overview data
-        const dashboardRes = await axios.get(
-          `http://localhost:3000/admin/dashboard`,
-          axiosConfig
-        );
+        const dashboardRes = await apiClient.get("/admin/dashboard");
         setAdminData(dashboardRes.data);
 
         // Fetch teachers
         try {
-          const teachersRes = await axios.get(
-            `http://localhost:3000/teacher/getAllTeachers`,
-            axiosConfig
-          );
+          const teachersRes = await apiClient.get("/teacher/getAllTeachers");
           const teachersData = teachersRes.data.teachers || [];
           setTeachers(teachersData);
           setStats((prev) => ({ ...prev, totalTeachers: teachersData.length }));
@@ -76,10 +63,7 @@ const AdminDashboard = () => {
 
         // Fetch classes
         try {
-          const classesRes = await axios.get(
-            `http://localhost:3000/class/all`,
-            axiosConfig
-          );
+          const classesRes = await apiClient.get("/class/all");
           const classesData = classesRes.data.classes || [];
           setClasses(classesData);
           setStats((prev) => ({ ...prev, totalClasses: classesData.length }));
@@ -101,10 +85,7 @@ const AdminDashboard = () => {
 
         // Fetch students (using student list endpoint)
         try {
-          const studentsRes = await axios.get(
-            `http://localhost:3000/student/list`,
-            axiosConfig
-          );
+          const studentsRes = await apiClient.get("/student/list");
           const studentsData = studentsRes.data.students || [];
           setStudents(studentsData);
           setStats((prev) => ({ ...prev, totalStudents: studentsData.length }));
