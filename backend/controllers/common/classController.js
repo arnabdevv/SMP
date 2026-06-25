@@ -2,6 +2,7 @@ const debug = require("debug")("development:app");
 
 const classModel = require("../../models/classModel");
 const batchModel = require("../../models/batchModel");
+require("../../models/teacherModel"); // Required so Mongoose registers "Teacher" schema for populate
 
 //Create class
 const createClass = async (req, res) => {
@@ -33,11 +34,7 @@ const fetchClasses = async (req, res) => {
     const classes = await classModel
       .find({})
       .populate("batches", "_id name")
-      .populate({
-        path: "teacher",
-        select: "user subject",
-        populate: { path: "user", select: "name" },
-      });
+      .populate("teacher", "fullName email");
     // For each batch, get count via aggregation
     const classesWithCounts = await Promise.all(
       classes.map(async (cls) => {
