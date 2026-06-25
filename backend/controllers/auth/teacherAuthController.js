@@ -43,7 +43,7 @@ const loginTeacher = async (req, res) => {
     const result = await bcrypt.compare(password, teacher.password);
     if (result) {
       const token = generateToken(teacher);
-      res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+      res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true });
       return res.status(200).json({ message: "Login Successful" });
     } else {
       return res.status(400).json({ message: "Email or Password Incorrect" });
@@ -54,7 +54,7 @@ const loginTeacher = async (req, res) => {
 };
 
 const logoutTeacher = async (req, res) => {
-  res.clearCookie("token", { httpOnly: true, sameSite: "strict" });
+  res.clearCookie("token", { httpOnly: true, sameSite: "none", secure: true });
   return res.status(200).json({ message: "Logout Successfully" });
 };
 

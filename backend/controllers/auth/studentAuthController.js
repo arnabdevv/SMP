@@ -105,7 +105,7 @@ const loginStudent = async (req, res) => {
     const result = await bcrypt.compare(password, student.password);
     if (result) {
       const token = generateToken(student);
-      res.cookie("token", token, { httpOnly: true, sameSite: "strict" });
+      res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true });
       res.status(200).json({
         message: "Login Successful",
         user: {
@@ -213,7 +213,7 @@ const registerStudentInBulk = async (req, res) => {
 
 //logout Student
 const logoutStudent = (req, res) => {
-  res.clearCookie("token", { httpOnly: true, sameSite: "strict" });
+  res.clearCookie("token", { httpOnly: true, sameSite: "none", secure: true });
   return res.status(200).json({ message: "Logout Successfully" });
 };
 
