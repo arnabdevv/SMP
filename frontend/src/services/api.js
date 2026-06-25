@@ -1,5 +1,13 @@
 import axios from "axios";
 
+const isDev = import.meta.env.MODE === "development";
+
+if (!isDev && !import.meta.env.VITE_API_URL) {
+  throw new Error(
+    "[api.js] VITE_API_URL is not defined. Set it in your production environment variables."
+  );
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 /**
