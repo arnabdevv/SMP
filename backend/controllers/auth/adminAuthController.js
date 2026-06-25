@@ -25,8 +25,7 @@ const registerAdmin = async (req, res) => {
       password: hashedPassword,
     });
     const token = generateToken(newAdmin);
-    res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true });
-    return res.status(200).json({ message: "Admin Register Successful" });
+    return res.status(200).json({ message: "Admin Register Successful", token });
   } catch (err) {
     return res.status(500).json({ message: `Internal Server Error` });
   }
@@ -45,11 +44,11 @@ const loginAdmin = async (req, res) => {
     const result = await bcrypt.compare(password, user.password);
     if (result) {
       const token = generateToken(user);
-      res.cookie("token", token, { httpOnly: true, sameSite: "none", secure: true });
       return res
         .status(200)
         .json({
           message: "Login Successful",
+          token,
           role: user.role,
           name: user.fullName,
         });
@@ -64,7 +63,6 @@ const loginAdmin = async (req, res) => {
 };
 
 const logoutAdmin = async (req, res) => {
-  res.clearCookie("token", { httpOnly: true, sameSite: "none", secure: true });
   return res.status(200).json({ message: "Logout Successfully" });
 };
 

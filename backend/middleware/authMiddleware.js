@@ -5,7 +5,10 @@ const { Student } = require("../models/studentModel");
 
 const isAuthenticated = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : null;
     if (!token) {
       return res.status(400).json({ message: "You need to login first" });
     }

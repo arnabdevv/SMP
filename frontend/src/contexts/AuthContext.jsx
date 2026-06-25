@@ -78,8 +78,11 @@ export const AuthProvider = ({ children }) => {
       };
 
       setUser(userData);
-      // Persist user data to localStorage for session recovery
+      // Persist user data and token to localStorage for session recovery
       localStorage.setItem("user", JSON.stringify(userData));
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
 
       return res.data;
     } catch (err) {
@@ -110,6 +113,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setUser(null);
       localStorage.removeItem("user");
+      localStorage.removeItem("token");
       setLoading(false);
       // Redirect to login page
       navigate("/login");

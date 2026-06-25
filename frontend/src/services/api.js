@@ -23,22 +23,22 @@ const apiClient = axios.create({
   },
 });
 
-// /**
-//  * Request Interceptor - Adds authentication token to requests
-//  * Retrieves JWT token from localStorage and attaches to Authorization header
-//  */
-// apiClient.interceptors.request.use(
-//   (config) => {
-//     const token = localStorage.getItem("token");
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
+/**
+ * Request Interceptor - Adds authentication token to every request
+ * Reads JWT from localStorage and attaches it as an Authorization header
+ */
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 /**
  * Response Interceptor - Handles error responses globally
